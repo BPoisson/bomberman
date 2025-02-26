@@ -1,6 +1,7 @@
 package engine;
 
 import game.Direction;
+import game.client.GameClient;
 import game.constants.Constants;
 import game.entities.Bomb;
 import game.entities.Player;
@@ -15,6 +16,7 @@ public class GamePanel extends JPanel implements Runnable {
     Thread gameThread;
     KeyHandler keyHandler = new KeyHandler();
     Player player = new Player();
+    GameClient gameClient = new GameClient();
 
     public GamePanel() {
         this.setPreferredSize(new Dimension(Constants.PANEL_WIDTH, Constants.PANEL_HEIGHT));
@@ -48,6 +50,7 @@ public class GamePanel extends JPanel implements Runnable {
     public void update() {
         handleInput();
         player.expireBombs();
+        gameClient.sendMessage(String.format("{\nx:%s,\ny:%s\n}", player.x, player.y));
     }
 
     public void paintComponent(Graphics graphics) {

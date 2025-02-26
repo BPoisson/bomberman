@@ -5,8 +5,8 @@ public class Constants {
     public static final int BLOCK_SIZE = 16;
     public static final int BLOCK_SCALE = 2;
     public static final int TILE_SIZE = BLOCK_SIZE * BLOCK_SCALE;
-    public static final int PANEL_ROWS = 30;
-    public static final int PANEL_COLS = 40;
+    public static final int PANEL_ROWS = 20;
+    public static final int PANEL_COLS = 30;
     public static final int PANEL_WIDTH = PANEL_COLS * TILE_SIZE;
     public static final int PANEL_HEIGHT = PANEL_ROWS * TILE_SIZE;
 
