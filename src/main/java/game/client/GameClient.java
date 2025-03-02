@@ -16,11 +16,17 @@ public class GameClient {
         }
     }
 
-    public void sendMessage(String message) {
+    public String sendMessage(String message) {
         byte[] buffer = message.getBytes();
         DatagramPacket packet = new DatagramPacket(buffer, buffer.length, address, 4445);
         try {
             socket.send(packet);
+            socket.receive(packet);
+
+            String received = new String(packet.getData(), packet.getOffset(), packet.getLength()).trim();
+
+            System.out.println("Client received:\n" + received);
+            return received;
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

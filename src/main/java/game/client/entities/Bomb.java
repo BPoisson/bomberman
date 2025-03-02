@@ -1,6 +1,7 @@
-package game.entities;
+package game.client.entities;
 
-import game.constants.Constants;
+import engine.Entity;
+import global.Constants;
 
 import java.awt.*;
 

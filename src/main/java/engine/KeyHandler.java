@@ -48,11 +48,4 @@ public class KeyHandler implements KeyListener {
             spacePressed = false;
         }
     }
-
-    private void releaseKeys() {
-        upPressed = false;
-        downPressed = false;
-        leftPressed = false;
-        rightPressed = false;
-    }
 }

@@ -1,4 +1,4 @@
-package game.constants;
+package global;
 
 public class Constants {
     // Panel constants.

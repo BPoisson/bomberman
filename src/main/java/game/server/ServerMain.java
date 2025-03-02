@@ -1,4 +1,4 @@
-package server;
+package game.server;
 
 public class ServerMain {
 

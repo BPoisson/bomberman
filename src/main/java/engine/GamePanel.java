@@ -2,9 +2,10 @@ package engine;
 
 import game.Direction;
 import game.client.GameClient;
-import game.constants.Constants;
-import game.entities.Bomb;
-import game.entities.Player;
+import game.client.entities.Bomb;
+import game.client.entities.Player;
+import global.Constants;
+import org.json.JSONObject;
 
 import javax.swing.*;
 import java.awt.*;
@@ -12,11 +13,11 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class GamePanel extends JPanel implements Runnable {
-    long prevTime = 0;
     Thread gameThread;
-    KeyHandler keyHandler = new KeyHandler();
-    Player player = new Player();
-    GameClient gameClient = new GameClient();
+    KeyHandler keyHandler;
+    Player player;
+    GameClient gameClient;
+    List<String> messages;
 
     public GamePanel() {
         this.setPreferredSize(new Dimension(Constants.PANEL_WIDTH, Constants.PANEL_HEIGHT));
@@ -24,6 +25,11 @@ public class GamePanel extends JPanel implements Runnable {
         this.setDoubleBuffered(true);
         this.addKeyListener(keyHandler);
         this.setFocusable(true);
+        this.keyHandler = new KeyHandler();
+        this.gameClient = new GameClient();
+        this.player = new Player();
+        this.messages = new LinkedList<>();
+        addKeyListener(this.keyHandler);
     }
 
     public void startGameThread() {
@@ -49,8 +55,6 @@ public class GamePanel extends JPanel implements Runnable {
 
     public void update() {
         handleInput();
-        player.expireBombs();
-        gameClient.sendMessage(String.format("{\nx:%s,\ny:%s\n}", player.x, player.y));
     }
 
     public void paintComponent(Graphics graphics) {
@@ -73,47 +77,32 @@ public class GamePanel extends JPanel implements Runnable {
     }
 
     private void handleInput() {
+        Direction dir = null;
+
         if (keyHandler.upPressed) {
-            player.y -= player.speed;
-            player.direction = Direction.UP;
+            dir = Direction.UP;
+            System.out.println(dir);
         } else if (keyHandler.downPressed) {
-            player.y += player.speed;
-            player.direction = Direction.DOWN;
+            dir = Direction.DOWN;
+            System.out.println(dir);
         } else if (keyHandler.leftPressed) {
-            player.x -= player.speed;
-            player.direction = Direction.LEFT;
+            dir = Direction.LEFT;
+            System.out.println(dir);
         } else if (keyHandler.rightPressed) {
-            player.x += player.speed;
-            player.direction = Direction.RIGHT;
+            dir = Direction.RIGHT;
+            System.out.println(dir);
         }
-        if (keyHandler.spacePressed && player.canPlaceBomb) {
-            switch (player.direction) {
-                case Direction.UP: {
-                    Bomb bomb = new Bomb(player.x, player.y - Constants.TILE_SIZE);
-                    player.bombList.add(bomb);
-                    break;
-                }
-                case Direction.DOWN: {
-                    Bomb bomb = new Bomb(player.x, player.y + Constants.TILE_SIZE);
-                    player.bombList.add(bomb);
-                    break;
-                }
-                case Direction.LEFT: {
-                    Bomb bomb = new Bomb(player.x - Constants.TILE_SIZE, player.y);
-                    player.bombList.add(bomb);
-                    break;
-                }
-                case Direction.RIGHT: {
-                    Bomb bomb = new Bomb(player.x + Constants.TILE_SIZE, player.y);
-                    player.bombList.add(bomb);
-                    break;
-                }
-                default:
-            }
-            player.canPlaceBomb = false;
+
+        if (dir != null) {
+            String response = this.gameClient.sendMessage(String.format("{\nuuid:%s,\naction:move,\ndir:%s\n}", player.uuid, dir));
+
+            JSONObject responseObj = new JSONObject(response);
+            player.x = responseObj.getInt("x");
+            player.y = responseObj.getInt("y");
         }
-        if (!keyHandler.spacePressed) {
-            player.canPlaceBomb = true;
+
+        if (keyHandler.spacePressed) {
+            this.messages.add(String.format("{\nuuid:%s,\naction:bomb\n}", player.uuid));
         }
     }
 }
