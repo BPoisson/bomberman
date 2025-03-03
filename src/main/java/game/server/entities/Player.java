@@ -21,7 +21,7 @@ public class Player extends Entity {
         this.x = 100;
         this.y = 100;
         this.bombCooldown = 0;
-        this.color = Color.WHITE;
+        this.color = Color.BLUE;
         this.speed = Constants.PLAYER_SPEED;
         this.direction = Direction.RIGHT;
         this.bombList = new LinkedList<>();
@@ -54,30 +54,28 @@ public class Player extends Entity {
             return null;
         }
 
-        Bomb bomb = null;
+        Bomb bomb;
         switch (this.direction) {
             case Direction.UP: {
                 bomb = new Bomb(this.x, this.y - Constants.TILE_SIZE);
-                this.bombList.add(bomb);
                 break;
             }
             case Direction.DOWN: {
                 bomb = new Bomb(this.x, this.y + Constants.TILE_SIZE);
-                this.bombList.add(bomb);
                 break;
             }
             case Direction.LEFT: {
                 bomb = new Bomb(this.x - Constants.TILE_SIZE, this.y);
-                this.bombList.add(bomb);
                 break;
             }
             case Direction.RIGHT: {
                 bomb = new Bomb(this.x + Constants.TILE_SIZE, this.y);
-                this.bombList.add(bomb);
                 break;
             }
             default:
+                throw new IllegalArgumentException("Player has no direction. Can't place bomb");
         }
+        this.bombList.add(bomb);
         this.bombCooldown = System.nanoTime() + Constants.ONE_SECOND_NANO * 2;
 
         return new int[] {bomb.x, bomb.y};
@@ -90,13 +88,5 @@ public class Player extends Entity {
 
         final long currTime = System.nanoTime();
         this.bombList.removeIf(bomb -> bomb.timer <= currTime);
-    }
-
-    public void setX(int x) {
-        this.x = x;
-    }
-
-    public void setY(int y) {
-        this.y = y;
     }
 }

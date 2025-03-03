@@ -15,7 +15,7 @@ public class Player extends Entity {
         this.uuid = UUID.randomUUID();
         this.x = 100;
         this.y = 100;
-        this.color = Color.WHITE;
+        this.color = Color.BLUE;
         this.bombList = new LinkedList<>();
     }
 

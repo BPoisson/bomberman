@@ -11,7 +11,7 @@ public class Bomb extends Entity {
     public Bomb(int x, int y) {
         this.x = x;
         this.y = y;
-        this.color = Color.BLUE;
+        this.color = Color.BLACK;
         this.timer = System.nanoTime() + Constants.BOMB_TIMER_NANO;
     }
 }
