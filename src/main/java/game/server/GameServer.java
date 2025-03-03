@@ -26,29 +26,45 @@ public class GameServer {
 
     public void run() {
         while (true) {
-            DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
-            try {
-                socket.receive(packet);
+            handleNetworkIO();
+            player.expireBombs();
+        }
+    }
 
-                InetAddress address = packet.getAddress();
-                int port = packet.getPort();
-                packet = new DatagramPacket(buffer, buffer.length, address, port);
+    private void handleNetworkIO() {
+        DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
+        try {
+            socket.receive(packet);
 
-                String received = new String(packet.getData(), packet.getOffset(), packet.getLength()).trim();
+            InetAddress address = packet.getAddress();
+            int port = packet.getPort();
+            packet = new DatagramPacket(buffer, buffer.length, address, port);
 
-                System.out.println("Server received:\n" + received);
+            String received = new String(packet.getData(), packet.getOffset(), packet.getLength()).trim();
 
-                JSONObject request = new JSONObject(received);
-                String action = (String) request.get("action");
-                if (action != null && action.equals("move")) {
-                    player.move((String) request.get("dir"));
-                }
+            System.out.println("Server received:\n" + received);
+
+            JSONObject request = new JSONObject(received);
+            String action = (String) request.get("action");
+            if (action != null && action.equals("move")) {
+                player.move((String) request.get("dir"));
                 String response = String.format("{\nx:%s,\ny:%s\n}", player.x, player.y);
                 DatagramPacket responsePacket = new DatagramPacket(response.getBytes(), response.length(), address, port);
                 socket.send(responsePacket);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
+            } else if (action != null && action.equals("bomb")) {
+                int[] bombCoords = player.placeBomb();
+                String response;
+
+                if (bombCoords == null) {
+                    response = String.format("{\nbombPlaced:%s\n}", false);
+                } else {
+                    response = String.format("{\nbombPlaced:%s,\nx:%s,\ny:%s\n}", true, bombCoords[0], bombCoords[1]);
+                }
+                DatagramPacket responsePacket = new DatagramPacket(response.getBytes(), response.length(), address, port);
+                socket.send(responsePacket);
             }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 }

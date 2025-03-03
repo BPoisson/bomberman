@@ -49,35 +49,38 @@ public class Player extends Entity {
         }
     }
 
-    public void placeBomb() {
+    public int[] placeBomb() {
         if (System.nanoTime() < bombCooldown) {
-            return;
+            return null;
         }
 
+        Bomb bomb = null;
         switch (this.direction) {
             case Direction.UP: {
-                Bomb bomb = new Bomb(this.x, this.y - Constants.TILE_SIZE);
+                bomb = new Bomb(this.x, this.y - Constants.TILE_SIZE);
                 this.bombList.add(bomb);
                 break;
             }
             case Direction.DOWN: {
-                Bomb bomb = new Bomb(this.x, this.y + Constants.TILE_SIZE);
+                bomb = new Bomb(this.x, this.y + Constants.TILE_SIZE);
                 this.bombList.add(bomb);
                 break;
             }
             case Direction.LEFT: {
-                Bomb bomb = new Bomb(this.x - Constants.TILE_SIZE, this.y);
+                bomb = new Bomb(this.x - Constants.TILE_SIZE, this.y);
                 this.bombList.add(bomb);
                 break;
             }
             case Direction.RIGHT: {
-                Bomb bomb = new Bomb(this.x + Constants.TILE_SIZE, this.y);
+                bomb = new Bomb(this.x + Constants.TILE_SIZE, this.y);
                 this.bombList.add(bomb);
                 break;
             }
             default:
         }
-        bombCooldown = System.nanoTime() + Constants.ONE_SECOND_MILLIS;
+        this.bombCooldown = System.nanoTime() + Constants.ONE_SECOND_NANO * 2;
+
+        return new int[] {bomb.x, bomb.y};
     }
 
     public void expireBombs() {

@@ -14,11 +14,13 @@ public class Constants {
     public static final int FRAME_RATE_SECONDS = 60;
     public static final long FRAME_TIME = 1_000_000_000;
     public static final long ONE_SECOND_MILLIS = 1_000;
+    public static final long ONE_MILLI_NANO = 1_000_000;
+    public static final long ONE_SECOND_NANO = ONE_SECOND_MILLIS * ONE_MILLI_NANO;
     public static final long DRAW_INTERVAL = Constants.FRAME_TIME / FRAME_RATE_SECONDS;
 
     // Player constants.
     public static final int PLAYER_SPEED = 3;
 
     // Entity constants.
-    public static final long BOMB_TIMER_MILLIS = Constants.ONE_SECOND_MILLIS * 4;
+    public static final long BOMB_TIMER_NANO = ONE_SECOND_NANO * 4;
 }

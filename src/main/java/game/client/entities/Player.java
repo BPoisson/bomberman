@@ -18,4 +18,13 @@ public class Player extends Entity {
         this.color = Color.WHITE;
         this.bombList = new LinkedList<>();
     }
+
+    public void expireBombs() {
+        if (this.bombList.isEmpty()) {
+            return;
+        }
+
+        final long currTime = System.nanoTime();
+        this.bombList.removeIf(bomb -> bomb.timer <= currTime);
+    }
 }

@@ -17,7 +17,6 @@ public class GamePanel extends JPanel implements Runnable {
     KeyHandler keyHandler;
     Player player;
     GameClient gameClient;
-    List<String> messages;
 
     public GamePanel() {
         this.setPreferredSize(new Dimension(Constants.PANEL_WIDTH, Constants.PANEL_HEIGHT));
@@ -28,7 +27,6 @@ public class GamePanel extends JPanel implements Runnable {
         this.keyHandler = new KeyHandler();
         this.gameClient = new GameClient();
         this.player = new Player();
-        this.messages = new LinkedList<>();
         addKeyListener(this.keyHandler);
     }
 
@@ -55,6 +53,7 @@ public class GamePanel extends JPanel implements Runnable {
 
     public void update() {
         handleInput();
+        player.expireBombs();
     }
 
     public void paintComponent(Graphics graphics) {
@@ -81,16 +80,12 @@ public class GamePanel extends JPanel implements Runnable {
 
         if (keyHandler.upPressed) {
             dir = Direction.UP;
-            System.out.println(dir);
         } else if (keyHandler.downPressed) {
             dir = Direction.DOWN;
-            System.out.println(dir);
         } else if (keyHandler.leftPressed) {
             dir = Direction.LEFT;
-            System.out.println(dir);
         } else if (keyHandler.rightPressed) {
             dir = Direction.RIGHT;
-            System.out.println(dir);
         }
 
         if (dir != null) {
@@ -102,7 +97,12 @@ public class GamePanel extends JPanel implements Runnable {
         }
 
         if (keyHandler.spacePressed) {
-            this.messages.add(String.format("{\nuuid:%s,\naction:bomb\n}", player.uuid));
+            String response = this.gameClient.sendMessage(String.format("{\nuuid:%s,\naction:bomb\n}", player.uuid));
+
+            JSONObject responseObj = new JSONObject(response);
+            if (responseObj.getBoolean("bombPlaced")) {
+                player.bombList.add(new Bomb(responseObj.getInt("x"), responseObj.getInt("y")));
+            }
         }
     }
 }
