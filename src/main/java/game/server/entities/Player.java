@@ -27,21 +27,21 @@ public class Player extends Entity {
         this.bombList = new LinkedList<>();
     }
 
-    public void move(String dir) {
-        switch (dir) {
-            case "UP":
+    public void move(Direction direction) {
+        switch (direction) {
+            case Direction.UP:
                 this.y -= this.speed;
                 this.direction = Direction.UP;
                 break;
-            case "DOWN":
+            case Direction.DOWN:
                 this.y += this.speed;
                 this.direction = Direction.DOWN;
                 break;
-            case "LEFT":
+            case Direction.LEFT:
                 this.x -= this.speed;
                 this.direction = Direction.LEFT;
                 break;
-            case "RIGHT":
+            case Direction.RIGHT:
                 this.x += this.speed;
                 this.direction = Direction.RIGHT;
                 break;

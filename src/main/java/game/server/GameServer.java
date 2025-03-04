@@ -1,5 +1,6 @@
 package game.server;
 
+import game.Direction;
 import game.server.entities.Player;
 import global.Constants;
 import global.JSONCreator;
@@ -49,7 +50,7 @@ public class GameServer {
             JSONObject request = new JSONObject(received);
             String action = request.getString(Constants.ACTION);
             if (action != null && action.equals(Constants.MOVE)) {
-                player.move(request.getString(Constants.DIRECTION));
+                player.move(Direction.valueOf(request.getString(Constants.DIRECTION)));
 
                 sendMessage(JSONCreator.coord(player.x, player.y).toString(), address, port);
             } else if (action != null && action.equals(Constants.BOMB)) {
