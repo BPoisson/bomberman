@@ -1,6 +1,8 @@
 package game.server;
 
 import game.server.entities.Player;
+import global.Constants;
+import global.JSONCreator;
 import org.json.JSONObject;
 
 import java.io.IOException;
@@ -45,24 +47,30 @@ public class GameServer {
             System.out.println("Server received:\n" + received);
 
             JSONObject request = new JSONObject(received);
-            String action = (String) request.get("action");
-            if (action != null && action.equals("move")) {
-                player.move((String) request.get("dir"));
-                String response = String.format("{\nx:%s,\ny:%s\n}", player.x, player.y);
-                DatagramPacket responsePacket = new DatagramPacket(response.getBytes(), response.length(), address, port);
-                socket.send(responsePacket);
-            } else if (action != null && action.equals("bomb")) {
+            String action = request.getString(Constants.ACTION);
+            if (action != null && action.equals(Constants.MOVE)) {
+                player.move(request.getString(Constants.DIRECTION));
+
+                sendMessage(JSONCreator.coord(player.x, player.y).toString(), address, port);
+            } else if (action != null && action.equals(Constants.BOMB)) {
                 int[] bombCoords = player.placeBomb();
-                String response;
 
                 if (bombCoords == null) {
-                    response = String.format("{\nbombPlaced:%s\n}", false);
+                    sendMessage(JSONCreator.bombNotPlaced().toString(), address, port);
                 } else {
-                    response = String.format("{\nbombPlaced:%s,\nx:%s,\ny:%s\n}", true, bombCoords[0], bombCoords[1]);
+                    sendMessage(JSONCreator.bombPlaced(bombCoords[0], bombCoords[1]).toString(), address, port);
                 }
-                DatagramPacket responsePacket = new DatagramPacket(response.getBytes(), response.length(), address, port);
-                socket.send(responsePacket);
             }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public void sendMessage(String message, InetAddress address, int port) {
+        byte[] buffer = message.getBytes();
+        DatagramPacket packet = new DatagramPacket(buffer, buffer.length, address, port);
+        try {
+            socket.send(packet);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

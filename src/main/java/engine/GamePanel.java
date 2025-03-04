@@ -4,6 +4,7 @@ import game.Direction;
 import game.client.GameClient;
 import game.client.entities.Bomb;
 import game.client.entities.Player;
+import global.JSONCreator;
 import global.Constants;
 import org.json.JSONObject;
 
@@ -89,19 +90,19 @@ public class GamePanel extends JPanel implements Runnable {
         }
 
         if (dir != null) {
-            String response = this.gameClient.sendMessage(String.format("{\nuuid:%s,\naction:move,\ndir:%s\n}", player.uuid, dir));
+            String response = this.gameClient.sendMessage(JSONCreator.move(player.uuid, dir).toString());
 
             JSONObject responseObj = new JSONObject(response);
-            player.x = responseObj.getInt("x");
-            player.y = responseObj.getInt("y");
+            player.x = responseObj.getInt(Constants.X);
+            player.y = responseObj.getInt(Constants.Y);
         }
 
         if (keyHandler.spacePressed) {
-            String response = this.gameClient.sendMessage(String.format("{\nuuid:%s,\naction:bomb\n}", player.uuid));
-
+            String response = this.gameClient.sendMessage(JSONCreator.bomb(player.uuid).toString());
             JSONObject responseObj = new JSONObject(response);
-            if (responseObj.getBoolean("bombPlaced")) {
-                player.bombList.add(new Bomb(responseObj.getInt("x"), responseObj.getInt("y")));
+
+            if (responseObj.getBoolean(Constants.BOMB_PLACED)) {
+                player.bombList.add(new Bomb(responseObj.getInt(Constants.X), responseObj.getInt(Constants.Y)));
             }
         }
     }

@@ -23,4 +23,14 @@ public class Constants {
 
     // Entity constants.
     public static final long BOMB_TIMER_NANO = ONE_SECOND_NANO * 4;
+
+    // JSON constants.
+    public static final String ACTION = "action";
+    public static final String BOMB = "bomb";
+    public static final String BOMB_PLACED = "bombPlaced";
+    public static final String DIRECTION = "direction";
+    public static final String MOVE = "move";
+    public static final String UUID = "uuid";
+    public static final String X = "x";
+    public static final String Y = "y";
 }
