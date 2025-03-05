@@ -5,6 +5,7 @@ import game.Direction;
 import global.Constants;
 
 import java.awt.*;
+import java.net.InetAddress;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
@@ -15,6 +16,8 @@ public class Player extends Entity {
     private long bombCooldown;
     private Direction direction;
     private List<Bomb> bombList;
+    public InetAddress address;
+    public int port;
 
     public Player() {
         this.uuid = UUID.randomUUID();
@@ -25,6 +28,19 @@ public class Player extends Entity {
         this.speed = Constants.PLAYER_SPEED;
         this.direction = Direction.RIGHT;
         this.bombList = new LinkedList<>();
+    }
+
+    public Player(UUID uuid, int x, int y, InetAddress address, int port) {
+        this.uuid = uuid;
+        this.x = x;
+        this.y = y;
+        this.bombCooldown = 0;
+        this.color = Color.BLUE;
+        this.speed = Constants.PLAYER_SPEED;
+        this.direction = Direction.RIGHT;
+        this.bombList = new LinkedList<>();
+        this.address = address;
+        this.port = port;
     }
 
     public void move(Direction direction) {

@@ -1,5 +1,7 @@
 package game.client;
 
+import org.json.JSONObject;
+
 import java.io.IOException;
 import java.net.*;
 
@@ -27,6 +29,22 @@ public class GameClient {
 
             System.out.println("Client received:\n" + received);
             return received;
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public JSONObject receiveMessage() {
+        byte[] buffer = new byte[256];
+        DatagramPacket packet = new DatagramPacket(buffer, buffer.length, address, 4445);
+
+        try {
+            socket.receive(packet);
+            String response = new String(packet.getData(), packet.getOffset(), packet.getLength()).trim();
+
+            System.out.println("Client received:\n" + response);
+
+            return new JSONObject(response);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

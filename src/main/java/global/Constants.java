@@ -33,4 +33,6 @@ public class Constants {
     public static final String UUID = "uuid";
     public static final String X = "x";
     public static final String Y = "y";
+    public static final String ACK = "ack";
+    public static final String START = "start";
 }

@@ -47,4 +47,27 @@ public class JSONCreator {
 
         return jsonObj;
     }
+
+    public static JSONObject registerPlayer(UUID uuid, int x, int y) {
+        JSONObject jsonObj = new JSONObject();
+        jsonObj.put(Constants.UUID, uuid);
+        jsonObj.put(Constants.X, x);
+        jsonObj.put(Constants.Y, y);
+
+        return jsonObj;
+    }
+
+    public static JSONObject playerAck() {
+        JSONObject jsonObj = new JSONObject();
+        jsonObj.put(Constants.ACK, true);
+
+        return jsonObj;
+    }
+
+    public static JSONObject gameStart() {
+        JSONObject jsonObj = new JSONObject();
+        jsonObj.put(Constants.START, true);
+
+        return jsonObj;
+    }
 }

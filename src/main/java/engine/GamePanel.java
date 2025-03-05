@@ -40,16 +40,40 @@ public class GamePanel extends JPanel implements Runnable {
     public void run() {
         long nextDrawTime = System.nanoTime() + Constants.DRAW_INTERVAL;
 
-        while (gameThread != null) {
-            long currTime = System.nanoTime();
+        registerPlayer();
+        getGameStart();
 
-            if (currTime < nextDrawTime) {
-                continue;
-            }
-            update();
-            repaint();
-            nextDrawTime = currTime + Constants.DRAW_INTERVAL;
+        while (gameThread != null) {
+            System.out.println("Game client running");
+
+//            long currTime = System.nanoTime();
+//
+//            if (currTime < nextDrawTime) {
+//                continue;
+//            }
+//            update();
+//            repaint();
+//            nextDrawTime = currTime + Constants.DRAW_INTERVAL;
         }
+    }
+
+    private void registerPlayer() {
+        String response = this.gameClient.sendMessage(JSONCreator.registerPlayer(player.uuid, player.x, player.y).toString());
+        JSONObject responseObj = new JSONObject(response);
+
+        if (!responseObj.getBoolean(Constants.ACK)) {
+            throw new RuntimeException("Did not receive ACK from server upon registration.");
+        }
+        System.out.println("Player " + player.uuid + " registered.");
+    }
+
+    private void getGameStart() {
+        JSONObject gameStart = this.gameClient.receiveMessage();
+
+        if (!gameStart.getBoolean(Constants.START)) {
+            throw new RuntimeException("Did not receive game start from server.");
+        }
+        System.out.println("Received game start");
     }
 
     public void update() {
