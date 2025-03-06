@@ -13,8 +13,8 @@ public class Player extends Entity {
 
     public Player() {
         this.uuid = UUID.randomUUID();
-        this.x = 100;
-        this.y = 100;
+        this.x = -100;
+        this.y = -100;
         this.color = Color.BLUE;
         this.bombList = new LinkedList<>();
     }

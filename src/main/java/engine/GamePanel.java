@@ -17,6 +17,7 @@ public class GamePanel extends JPanel implements Runnable {
     Thread gameThread;
     KeyHandler keyHandler;
     Player player;
+    Player enemy;
     GameClient gameClient;
 
     public GamePanel() {
@@ -44,22 +45,24 @@ public class GamePanel extends JPanel implements Runnable {
         getGameStart();
 
         while (gameThread != null) {
-            System.out.println("Game client running");
+            long currTime = System.nanoTime();
 
-//            long currTime = System.nanoTime();
-//
-//            if (currTime < nextDrawTime) {
-//                continue;
-//            }
-//            update();
-//            repaint();
-//            nextDrawTime = currTime + Constants.DRAW_INTERVAL;
+            if (currTime < nextDrawTime) {
+                continue;
+            }
+            update();
+            repaint();
+            nextDrawTime = currTime + Constants.DRAW_INTERVAL;
         }
     }
 
     private void registerPlayer() {
-        String response = this.gameClient.sendMessage(JSONCreator.registerPlayer(player.uuid, player.x, player.y).toString());
+        String response = this.gameClient.sendMessage(JSONCreator.registerPlayer(player.uuid).toString());
         JSONObject responseObj = new JSONObject(response);
+
+        // The server determines the initial player position.
+        this.player.x = responseObj.getInt(Constants.X);
+        this.player.y = responseObj.getInt(Constants.Y);
 
         if (!responseObj.getBoolean(Constants.ACK)) {
             throw new RuntimeException("Did not receive ACK from server upon registration.");
@@ -77,7 +80,7 @@ public class GamePanel extends JPanel implements Runnable {
     }
 
     public void update() {
-        handleInput();
+       // handleInput();
         player.expireBombs();
     }
 

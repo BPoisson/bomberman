@@ -48,18 +48,18 @@ public class JSONCreator {
         return jsonObj;
     }
 
-    public static JSONObject registerPlayer(UUID uuid, int x, int y) {
+    public static JSONObject registerPlayer(UUID uuid) {
         JSONObject jsonObj = new JSONObject();
         jsonObj.put(Constants.UUID, uuid);
-        jsonObj.put(Constants.X, x);
-        jsonObj.put(Constants.Y, y);
 
         return jsonObj;
     }
 
-    public static JSONObject playerAck() {
+    public static JSONObject playerAck(int x, int y) {
         JSONObject jsonObj = new JSONObject();
         jsonObj.put(Constants.ACK, true);
+        jsonObj.put(Constants.X, x);
+        jsonObj.put(Constants.Y, y);
 
         return jsonObj;
     }

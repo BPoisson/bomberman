@@ -60,11 +60,13 @@ public class GameServer {
                 int port = packet.getPort();
                 packet = new DatagramPacket(buffer, buffer.length, address, port);
                 String playerData = new String(packet.getData(), packet.getOffset(), packet.getLength()).trim();
+                int playerNum = players.isEmpty() ? 1 : 2;
+                Player player = createPlayer(playerNum, new JSONObject(playerData), address, port);
 
                 System.out.println("Server received player:\n" + playerData);
 
-                players.add(createPlayer(new JSONObject(playerData), address, port));
-                sendMessage(JSONCreator.playerAck().toString(), address, port);
+                players.add(player);
+                sendMessage(JSONCreator.playerAck(player.x, player.y).toString(), address, port);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
@@ -72,10 +74,10 @@ public class GameServer {
         System.out.println("Server got 2 players: " + players.size());
     }
 
-    private Player createPlayer(JSONObject playerData, InetAddress address, int port) {
+    private Player createPlayer(int playerNum, JSONObject playerData, InetAddress address, int port) {
         UUID playerUUID = UUID.fromString(playerData.getString(Constants.UUID));
-        int playerX = playerData.getInt(Constants.X);
-        int playerY = playerData.getInt(Constants.Y);
+        int playerX = playerNum == 1 ? Constants.PLAYER_1_X : Constants.PLAYER_2_X;
+        int playerY = Constants.PLAYER_Y;
 
         return new Player(playerUUID, playerX, playerY, address, port);
     }
