@@ -19,6 +19,14 @@ public class Player extends Entity {
         this.bombList = new LinkedList<>();
     }
 
+    public Player(UUID uuid, int x, int y) {
+        this.uuid = uuid;
+        this.x = x;
+        this.y = y;
+        this.color = Color.RED;
+        this.bombList = new LinkedList<>();
+    }
+
     public void expireBombs() {
         if (this.bombList.isEmpty()) {
             return;

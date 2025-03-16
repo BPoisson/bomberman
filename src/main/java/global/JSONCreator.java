@@ -64,9 +64,12 @@ public class JSONCreator {
         return jsonObj;
     }
 
-    public static JSONObject gameStart() {
+    public static JSONObject gameStart(UUID uuid, int x, int y) {
         JSONObject jsonObj = new JSONObject();
         jsonObj.put(Constants.START, true);
+        jsonObj.put(Constants.UUID, uuid);
+        jsonObj.put(Constants.X, x);
+        jsonObj.put(Constants.Y, y);
 
         return jsonObj;
     }

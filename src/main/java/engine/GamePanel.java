@@ -12,6 +12,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.UUID;
 
 public class GamePanel extends JPanel implements Runnable {
     Thread gameThread;
@@ -76,12 +77,13 @@ public class GamePanel extends JPanel implements Runnable {
         if (!gameStart.getBoolean(Constants.START)) {
             throw new RuntimeException("Did not receive game start from server.");
         }
+        enemy = new Player(UUID.fromString(gameStart.getString(Constants.UUID)), gameStart.getInt(Constants.X), gameStart.getInt(Constants.Y));
         System.out.println("Received game start");
     }
 
     public void update() {
-       // handleInput();
-        player.expireBombs();
+        handleInput();
+//        player.expireBombs();
     }
 
     public void paintComponent(Graphics graphics) {
@@ -90,6 +92,12 @@ public class GamePanel extends JPanel implements Runnable {
         Graphics2D playerGraphics2D = (Graphics2D) graphics;
         playerGraphics2D.setColor(player.color);
         playerGraphics2D.fillRect(player.x, player.y, Constants.TILE_SIZE, Constants.TILE_SIZE);
+
+        if (enemy != null) {
+            Graphics2D enemyGraphics2D = (Graphics2D) graphics;
+            enemyGraphics2D.setColor(enemy.color);
+            enemyGraphics2D.fillRect(enemy.x, enemy.y, Constants.TILE_SIZE, Constants.TILE_SIZE);
+        }
 
         List<Graphics2D> bombGraphics2DList = new LinkedList<>();
 
