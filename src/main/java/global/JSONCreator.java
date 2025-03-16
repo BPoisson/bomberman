@@ -24,8 +24,10 @@ public class JSONCreator {
         return jsonObj;
     }
 
-    public static JSONObject coord(int x, int y) {
+    public static JSONObject playerMoved(UUID uuid, int x, int y) {
         JSONObject jsonObj = new JSONObject();
+        jsonObj.put(Constants.ACTION, Constants.MOVE);
+        jsonObj.put(Constants.UUID, uuid);
         jsonObj.put(Constants.X, x);
         jsonObj.put(Constants.Y, y);
 

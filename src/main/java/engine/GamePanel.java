@@ -4,33 +4,38 @@ import game.Direction;
 import game.client.GameClient;
 import game.client.entities.Bomb;
 import game.client.entities.Player;
-import global.JSONCreator;
 import global.Constants;
+import global.JSONCreator;
 import org.json.JSONObject;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 public class GamePanel extends JPanel implements Runnable {
     Thread gameThread;
     KeyHandler keyHandler;
+    FocusHandler focusHandler;
     Player player;
     Player enemy;
+    Map<UUID, Player> playerMap;
     GameClient gameClient;
 
     public GamePanel() {
-        this.setPreferredSize(new Dimension(Constants.PANEL_WIDTH, Constants.PANEL_HEIGHT));
-        this.setBackground(Color.GRAY);
-        this.setDoubleBuffered(true);
-        this.addKeyListener(keyHandler);
-        this.setFocusable(true);
-        this.keyHandler = new KeyHandler();
-        this.gameClient = new GameClient();
-        this.player = new Player();
-        addKeyListener(this.keyHandler);
+        keyHandler = new KeyHandler();
+        focusHandler = new FocusHandler(keyHandler);
+        gameClient = new GameClient();
+        player = new Player();
+        playerMap = new HashMap<>();
+        playerMap.put(player.uuid, player);
+
+        setPreferredSize(new Dimension(Constants.PANEL_WIDTH, Constants.PANEL_HEIGHT));
+        setBackground(Color.GRAY);
+        setDoubleBuffered(true);
+        addKeyListener(keyHandler);
+        addFocusListener(focusHandler);
+        setFocusable(true);
     }
 
     public void startGameThread() {
@@ -44,6 +49,7 @@ public class GamePanel extends JPanel implements Runnable {
 
         registerPlayer();
         getGameStart();
+        gameClient.startSocketListener();
 
         while (gameThread != null) {
             long currTime = System.nanoTime();
@@ -58,31 +64,35 @@ public class GamePanel extends JPanel implements Runnable {
     }
 
     private void registerPlayer() {
-        String response = this.gameClient.sendMessage(JSONCreator.registerPlayer(player.uuid).toString());
-        JSONObject responseObj = new JSONObject(response);
+        gameClient.sendMessage(JSONCreator.registerPlayer(player.uuid).toString());
+        JSONObject response = gameClient.receiveMessage();
+
+        System.out.println("Client has received " + response.toString());
 
         // The server determines the initial player position.
-        this.player.x = responseObj.getInt(Constants.X);
-        this.player.y = responseObj.getInt(Constants.Y);
+        player.x = response.getInt(Constants.X);
+        player.y = response.getInt(Constants.Y);
 
-        if (!responseObj.getBoolean(Constants.ACK)) {
+        if (!response.getBoolean(Constants.ACK)) {
             throw new RuntimeException("Did not receive ACK from server upon registration.");
         }
         System.out.println("Player " + player.uuid + " registered.");
     }
 
     private void getGameStart() {
-        JSONObject gameStart = this.gameClient.receiveMessage();
+        JSONObject gameStart = gameClient.receiveMessage();
 
         if (!gameStart.getBoolean(Constants.START)) {
             throw new RuntimeException("Did not receive game start from server.");
         }
         enemy = new Player(UUID.fromString(gameStart.getString(Constants.UUID)), gameStart.getInt(Constants.X), gameStart.getInt(Constants.Y));
+        playerMap.put(enemy.uuid, enemy);
         System.out.println("Received game start");
     }
 
     public void update() {
         handleInput();
+        handleServerMessages();
 //        player.expireBombs();
     }
 
@@ -111,6 +121,32 @@ public class GamePanel extends JPanel implements Runnable {
         bombGraphics2DList.forEach(Graphics::dispose);
     }
 
+    private void handleServerMessages() {
+        List<JSONObject> messages = gameClient.receiveMessages();
+
+        if (messages.isEmpty()) {
+            return;
+        }
+
+        for (JSONObject message : messages) {
+            String action = message.getString(Constants.ACTION);
+
+            if (action != null && action.equals(Constants.MOVE)) {
+                handleMovement(message);
+            }
+        }
+    }
+
+    private void handleMovement(JSONObject jsonObject) {
+        UUID uuid = UUID.fromString(jsonObject.getString(Constants.UUID));
+        int x = jsonObject.getInt(Constants.X);
+        int y = jsonObject.getInt(Constants.Y);
+
+        Player p = playerMap.get(uuid);
+        p.x = x;
+        p.y = y;
+    }
+
     private void handleInput() {
         Direction dir = null;
 
@@ -125,20 +161,16 @@ public class GamePanel extends JPanel implements Runnable {
         }
 
         if (dir != null) {
-            String response = this.gameClient.sendMessage(JSONCreator.move(player.uuid, dir).toString());
-
-            JSONObject responseObj = new JSONObject(response);
-            player.x = responseObj.getInt(Constants.X);
-            player.y = responseObj.getInt(Constants.Y);
+            gameClient.sendMessage(JSONCreator.move(player.uuid, dir).toString());
         }
 
         if (keyHandler.spacePressed) {
-            String response = this.gameClient.sendMessage(JSONCreator.bomb(player.uuid).toString());
-            JSONObject responseObj = new JSONObject(response);
-
-            if (responseObj.getBoolean(Constants.BOMB_PLACED)) {
-                player.bombList.add(new Bomb(responseObj.getInt(Constants.X), responseObj.getInt(Constants.Y)));
-            }
+            gameClient.sendMessage(JSONCreator.bomb(player.uuid).toString());
+//            JSONObject responseObj = new JSONObject(response);
+//
+//            if (responseObj.getBoolean(Constants.BOMB_PLACED)) {
+//                player.bombList.add(new Bomb(responseObj.getInt(Constants.X), responseObj.getInt(Constants.Y)));
+//            }
         }
     }
 }

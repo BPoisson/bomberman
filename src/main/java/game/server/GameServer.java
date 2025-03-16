@@ -22,7 +22,7 @@ public class GameServer {
     public GameServer() {
         this.players = new LinkedList<>();
         this.playerMap = new HashMap<>();
-        buffer = new byte[256];
+        this.buffer = new byte[256];
         try {
             socket = new DatagramSocket(4445);
         } catch (SocketException e) {
@@ -100,13 +100,14 @@ public class GameServer {
             System.out.println("Server received:\n" + received);
 
             JSONObject request = new JSONObject(received);
-            Player player = playerMap.get(UUID.fromString(request.getString(Constants.UUID)));
+            UUID playerUUID = UUID.fromString(request.getString(Constants.UUID));
+            Player player = playerMap.get(playerUUID);
             String action = request.getString(Constants.ACTION);
             if (action != null && action.equals(Constants.MOVE)) {
                 player.move(Direction.valueOf(request.getString(Constants.DIRECTION)));
 
                 for (Player p : players) {
-                    sendMessage(JSONCreator.coord(player.x, player.y).toString(), p.address, p.port);
+                    sendMessage(JSONCreator.playerMoved(player.uuid, player.x, player.y).toString(), p.address, p.port);
                 }
             } else if (action != null && action.equals(Constants.BOMB)) {
                 int[] bombCoords = player.placeBomb();
