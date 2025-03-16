@@ -4,11 +4,13 @@ import engine.Entity;
 import global.Constants;
 
 import java.awt.*;
+import java.util.UUID;
 
 public class Bomb extends Entity {
     public long timer;
 
-    public Bomb(int x, int y) {
+    public Bomb(UUID uuid, int x, int y) {
+        this.uuid = uuid;
         this.x = x;
         this.y = y;
         this.color = Color.BLACK;

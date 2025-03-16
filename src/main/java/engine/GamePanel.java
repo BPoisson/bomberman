@@ -85,7 +85,7 @@ public class GamePanel extends JPanel implements Runnable {
         if (!gameStart.getBoolean(Constants.START)) {
             throw new RuntimeException("Did not receive game start from server.");
         }
-        enemy = new Player(UUID.fromString(gameStart.getString(Constants.UUID)), gameStart.getInt(Constants.X), gameStart.getInt(Constants.Y));
+        enemy = new Player(UUID.fromString(gameStart.getString(Constants.PLAYER_UUID)), gameStart.getInt(Constants.X), gameStart.getInt(Constants.Y));
         playerMap.put(enemy.uuid, enemy);
         System.out.println("Received game start");
     }
@@ -93,32 +93,46 @@ public class GamePanel extends JPanel implements Runnable {
     public void update() {
         handleInput();
         handleServerMessages();
-//        player.expireBombs();
     }
 
     public void paintComponent(Graphics graphics) {
         super.paintComponent(graphics);
 
         Graphics2D playerGraphics2D = (Graphics2D) graphics;
+        Graphics2D enemyGraphics2D = (Graphics2D) graphics;
+        List<Graphics2D> playerBombGraphics2DList = new LinkedList<>();
+        List<Graphics2D> enemyBombGraphics2DList = new LinkedList<>();
+
+        // Draw player.
         playerGraphics2D.setColor(player.color);
         playerGraphics2D.fillRect(player.x, player.y, Constants.TILE_SIZE, Constants.TILE_SIZE);
 
-        if (enemy != null) {
-            Graphics2D enemyGraphics2D = (Graphics2D) graphics;
-            enemyGraphics2D.setColor(enemy.color);
-            enemyGraphics2D.fillRect(enemy.x, enemy.y, Constants.TILE_SIZE, Constants.TILE_SIZE);
-        }
-
-        List<Graphics2D> bombGraphics2DList = new LinkedList<>();
+        // Draw player bombs.
 
         for (Bomb bomb : player.bombList) {
             Graphics2D bombGraphics2D = (Graphics2D) graphics;
             bombGraphics2D.setColor(bomb.color);
-            bombGraphics2D.fillRect(bomb.x, bomb.y, Constants.TILE_SIZE, Constants.TILE_SIZE);
-            bombGraphics2DList.add(bombGraphics2D);
+            bombGraphics2D.fillOval(bomb.x, bomb.y, Constants.TILE_SIZE, Constants.TILE_SIZE);
+            playerBombGraphics2DList.add(bombGraphics2D);
+        }
+
+        if (enemy != null) {
+            // Draw enemy.
+            enemyGraphics2D.setColor(enemy.color);
+            enemyGraphics2D.fillRect(enemy.x, enemy.y, Constants.TILE_SIZE, Constants.TILE_SIZE);
+
+            // Draw player bombs.
+            for (Bomb bomb : enemy.bombList) {
+                Graphics2D bombGraphics2D = (Graphics2D) graphics;
+                bombGraphics2D.setColor(bomb.color);
+                bombGraphics2D.fillOval(bomb.x, bomb.y, Constants.TILE_SIZE, Constants.TILE_SIZE);
+                enemyBombGraphics2DList.add(bombGraphics2D);
+            }
         }
         playerGraphics2D.dispose();
-        bombGraphics2DList.forEach(Graphics::dispose);
+        enemyGraphics2D.dispose();
+        playerBombGraphics2DList.forEach(Graphics::dispose);
+        enemyBombGraphics2DList.forEach(Graphics::dispose);
     }
 
     private void handleServerMessages() {
@@ -131,20 +145,52 @@ public class GamePanel extends JPanel implements Runnable {
         for (JSONObject message : messages) {
             String action = message.getString(Constants.ACTION);
 
-            if (action != null && action.equals(Constants.MOVE)) {
+            if (action == null) {
+                continue;
+            }
+
+            if (action.equals(Constants.MOVE)) {
                 handleMovement(message);
+            } else if (action.equals(Constants.BOMB)) {
+                if (!message.getBoolean(Constants.BOMB_PLACED)) {
+                    continue;
+                }
+                handleBomb(message);
+            } else if (action.equals(Constants.BOMB_EXPIRED)) {
+                handleBombExpired(message);
             }
         }
     }
 
     private void handleMovement(JSONObject jsonObject) {
-        UUID uuid = UUID.fromString(jsonObject.getString(Constants.UUID));
+        UUID uuid = UUID.fromString(jsonObject.getString(Constants.PLAYER_UUID));
         int x = jsonObject.getInt(Constants.X);
         int y = jsonObject.getInt(Constants.Y);
 
         Player p = playerMap.get(uuid);
         p.x = x;
         p.y = y;
+    }
+
+    private void handleBomb(JSONObject jsonObject) {
+        UUID playerUUID = UUID.fromString(jsonObject.getString(Constants.PLAYER_UUID));
+        UUID bombUUID = UUID.fromString(jsonObject.getString(Constants.BOMB_UUID));
+        int bombX = jsonObject.getInt(Constants.X);
+        int bombY = jsonObject.getInt(Constants.Y);
+        Bomb bomb = new Bomb(bombUUID, bombX, bombY);
+        Player player = playerMap.get(playerUUID);
+        player.bombList.add(bomb);
+        player.bombMap.put(bombUUID, bomb);
+    }
+
+    private void handleBombExpired(JSONObject jsonObject) {
+        UUID playerUUID = UUID.fromString(jsonObject.getString(Constants.PLAYER_UUID));
+        UUID bombUUID = UUID.fromString(jsonObject.getString(Constants.BOMB_UUID));
+        Player player = playerMap.get(playerUUID);
+        Bomb bomb = player.bombMap.get(bombUUID);
+
+        player.bombList.remove(bomb);
+        player.bombMap.remove(bombUUID);
     }
 
     private void handleInput() {
@@ -166,11 +212,6 @@ public class GamePanel extends JPanel implements Runnable {
 
         if (keyHandler.spacePressed) {
             gameClient.sendMessage(JSONCreator.bomb(player.uuid).toString());
-//            JSONObject responseObj = new JSONObject(response);
-//
-//            if (responseObj.getBoolean(Constants.BOMB_PLACED)) {
-//                player.bombList.add(new Bomb(responseObj.getInt(Constants.X), responseObj.getInt(Constants.Y)));
-//            }
         }
     }
 }

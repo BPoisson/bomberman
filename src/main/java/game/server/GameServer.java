@@ -1,6 +1,7 @@
 package game.server;
 
 import game.Direction;
+import game.server.entities.Bomb;
 import game.server.entities.Player;
 import global.Constants;
 import global.JSONCreator;
@@ -37,7 +38,7 @@ public class GameServer {
         while (true) {
             System.out.println("Server running.");
             handleGameUpdates();
-//            player.expireBombs();
+            expireBombs();
         }
     }
 
@@ -79,7 +80,7 @@ public class GameServer {
     }
 
     private Player createPlayer(int playerNum, JSONObject playerData, InetAddress address, int port) {
-        UUID playerUUID = UUID.fromString(playerData.getString(Constants.UUID));
+        UUID playerUUID = UUID.fromString(playerData.getString(Constants.PLAYER_UUID));
         int playerX = playerNum == 1 ? Constants.PLAYER_1_X : Constants.PLAYER_2_X;
         int playerY = Constants.PLAYER_Y;
 
@@ -100,27 +101,53 @@ public class GameServer {
             System.out.println("Server received:\n" + received);
 
             JSONObject request = new JSONObject(received);
-            UUID playerUUID = UUID.fromString(request.getString(Constants.UUID));
+            UUID playerUUID = UUID.fromString(request.getString(Constants.PLAYER_UUID));
             Player player = playerMap.get(playerUUID);
             String action = request.getString(Constants.ACTION);
-            if (action != null && action.equals(Constants.MOVE)) {
-                player.move(Direction.valueOf(request.getString(Constants.DIRECTION)));
 
-                for (Player p : players) {
-                    sendMessage(JSONCreator.playerMoved(player.uuid, player.x, player.y).toString(), p.address, p.port);
-                }
-            } else if (action != null && action.equals(Constants.BOMB)) {
-                int[] bombCoords = player.placeBomb();
+            if (action == null) {
+                return;
+            }
 
-                if (bombCoords == null) {
-                    sendMessage(JSONCreator.bombNotPlaced().toString(), address, port);
-                } else {
-                    // TODO: Handle bomb placement update for other player's client.
-                    sendMessage(JSONCreator.bombPlaced(bombCoords[0], bombCoords[1]).toString(), address, port);
-                }
+            if (action.equals(Constants.MOVE)) {
+                handleMovement(player, Direction.valueOf(request.getString(Constants.DIRECTION)));
+            } else if (action.equals(Constants.BOMB)) {
+                handleBomb(player);
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    private void handleMovement(Player player, Direction direction) {
+        player.move(direction);
+
+        for (Player p : players) {
+            sendMessage(JSONCreator.playerMoved(player.uuid, player.x, player.y).toString(), p.address, p.port);
+        }
+    }
+
+    private void handleBomb(Player player) {
+        Bomb bomb = player.placeBomb();
+
+        if (bomb == null) {
+            sendMessage(JSONCreator.bombNotPlaced().toString(), player.address, player.port);
+        } else {
+            for (Player p : players) {
+                sendMessage(JSONCreator.bombPlaced(player.uuid, bomb.uuid, bomb.x, bomb.y).toString(), p.address, p.port);
+            }
+        }
+    }
+
+    private void expireBombs() {
+        for (Player player : players) {
+            List<Bomb> expiredBombs = player.expireBombs();
+
+            for (Bomb b : expiredBombs) {
+                for (Player p : players) {
+                    sendMessage(JSONCreator.bombExpired(player.uuid, b.uuid).toString(), p.address, p.port);
+                }
+            }
         }
     }
 

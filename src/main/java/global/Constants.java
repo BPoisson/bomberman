@@ -31,9 +31,11 @@ public class Constants {
     public static final String ACTION = "action";
     public static final String BOMB = "bomb";
     public static final String BOMB_PLACED = "bombPlaced";
+    public static final String BOMB_EXPIRED = "bombExpired";
     public static final String DIRECTION = "direction";
     public static final String MOVE = "move";
-    public static final String UUID = "uuid";
+    public static final String PLAYER_UUID = "playerUUID";
+    public static final String BOMB_UUID = "bombUUID";
     public static final String X = "x";
     public static final String Y = "y";
     public static final String ACK = "ack";
