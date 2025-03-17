@@ -19,21 +19,24 @@ public class GameServer {
     private Map<UUID, Player> playerMap;
     private byte[] buffer;
     private DatagramSocket socket;
+    private ServerSocketListener serverSocketListener;
 
     public GameServer() {
         this.players = new LinkedList<>();
         this.playerMap = new HashMap<>();
         this.buffer = new byte[256];
         try {
-            socket = new DatagramSocket(4445);
+            this.socket = new DatagramSocket(4445);
         } catch (SocketException e) {
             throw new RuntimeException(e);
         }
+        this.serverSocketListener = new ServerSocketListener(socket);
     }
 
     public void run() {
         getPlayers();
         sendGameStart();
+        serverSocketListener.startServerSocketListenerThread();
 
         while (true) {
             System.out.println("Server running.");
@@ -88,34 +91,22 @@ public class GameServer {
     }
 
     private void handleGameUpdates() {
-        DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
-        try {
-            socket.receive(packet);
+        List<JSONObject> messages = serverSocketListener.receive();
 
-            InetAddress address = packet.getAddress();
-            int port = packet.getPort();
-            packet = new DatagramPacket(buffer, buffer.length, address, port);
-
-            String received = new String(packet.getData(), packet.getOffset(), packet.getLength()).trim();
-
-            System.out.println("Server received:\n" + received);
-
-            JSONObject request = new JSONObject(received);
-            UUID playerUUID = UUID.fromString(request.getString(Constants.PLAYER_UUID));
+        for (JSONObject message : messages) {
+            UUID playerUUID = UUID.fromString(message.getString(Constants.PLAYER_UUID));
             Player player = playerMap.get(playerUUID);
-            String action = request.getString(Constants.ACTION);
+            String action = message.getString(Constants.ACTION);
 
             if (action == null) {
                 return;
             }
 
             if (action.equals(Constants.MOVE)) {
-                handleMovement(player, Direction.valueOf(request.getString(Constants.DIRECTION)));
+                handleMovement(player, Direction.valueOf(message.getString(Constants.DIRECTION)));
             } else if (action.equals(Constants.BOMB)) {
                 handleBomb(player);
             }
-        } catch (IOException e) {
-            throw new RuntimeException(e);
         }
     }
 
