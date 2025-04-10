@@ -4,14 +4,15 @@ import game.Direction;
 import game.client.GameClient;
 import game.client.entities.Bomb;
 import game.client.entities.Player;
+import game.server.entities.GameMap;
 import global.Constants;
 import global.JSONCreator;
 import org.json.JSONObject;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.List;
 import java.util.*;
+import java.util.List;
 
 public class GamePanel extends JPanel implements Runnable {
     Thread gameThread;
@@ -21,6 +22,7 @@ public class GamePanel extends JPanel implements Runnable {
     Player enemy;
     Map<UUID, Player> playerMap;
     GameClient gameClient;
+    GameMap gameMap;
 
     public GamePanel() {
         keyHandler = new KeyHandler();
@@ -29,9 +31,10 @@ public class GamePanel extends JPanel implements Runnable {
         player = new Player();
         playerMap = new HashMap<>();
         playerMap.put(player.uuid, player);
+        gameMap = new GameMap();
 
         setPreferredSize(new Dimension(Constants.PANEL_WIDTH, Constants.PANEL_HEIGHT));
-        setBackground(Color.GRAY);
+        setBackground(Color.WHITE);
         setDoubleBuffered(true);
         addKeyListener(keyHandler);
         addFocusListener(focusHandler);
@@ -99,16 +102,13 @@ public class GamePanel extends JPanel implements Runnable {
         super.paintComponent(graphics);
 
         Graphics2D playerGraphics2D = (Graphics2D) graphics;
-        Graphics2D enemyGraphics2D = (Graphics2D) graphics;
         List<Graphics2D> playerBombGraphics2DList = new LinkedList<>();
-        List<Graphics2D> enemyBombGraphics2DList = new LinkedList<>();
 
         // Draw player.
         playerGraphics2D.setColor(player.color);
         playerGraphics2D.fillRect(player.x, player.y, Constants.TILE_SIZE, Constants.TILE_SIZE);
 
         // Draw player bombs.
-
         for (Bomb bomb : player.bombList) {
             Graphics2D bombGraphics2D = (Graphics2D) graphics;
             bombGraphics2D.setColor(bomb.color);
@@ -116,6 +116,8 @@ public class GamePanel extends JPanel implements Runnable {
             playerBombGraphics2DList.add(bombGraphics2D);
         }
 
+        Graphics2D enemyGraphics2D = (Graphics2D) graphics;
+        List<Graphics2D> enemyBombGraphics2DList = new LinkedList<>();
         if (enemy != null) {
             // Draw enemy.
             enemyGraphics2D.setColor(enemy.color);
@@ -129,10 +131,20 @@ public class GamePanel extends JPanel implements Runnable {
                 enemyBombGraphics2DList.add(bombGraphics2D);
             }
         }
+
+        List<Graphics2D> mapGraphics2DList = new LinkedList<>();
+        for (Entity mapEntity : gameMap.mapEntities) {
+            Graphics2D mapGraphics2D = (Graphics2D) graphics;
+            mapGraphics2D.setColor(mapEntity.color);
+            mapGraphics2D.fillRect(mapEntity.x, mapEntity.y, Constants.TILE_SIZE, Constants.TILE_SIZE);
+            mapGraphics2DList.add(mapGraphics2D);
+        }
+
         playerGraphics2D.dispose();
         enemyGraphics2D.dispose();
         playerBombGraphics2DList.forEach(Graphics::dispose);
         enemyBombGraphics2DList.forEach(Graphics::dispose);
+        mapGraphics2DList.forEach(Graphics::dispose);
     }
 
     private void handleServerMessages() {

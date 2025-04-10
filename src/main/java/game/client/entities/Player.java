@@ -14,7 +14,7 @@ public class Player extends Entity {
         this.uuid = UUID.randomUUID();
         this.x = -100;
         this.y = -100;
-        this.color = Color.BLUE;
+        this.color = Color.getHSBColor(210 / 360f, 1.0f, 0.8f);
         this.bombList = new LinkedList<>();
         this.bombMap = new HashMap<>();
     }
@@ -23,7 +23,7 @@ public class Player extends Entity {
         this.uuid = uuid;
         this.x = x;
         this.y = y;
-        this.color = Color.RED;
+        this.color = Color.getHSBColor(0 / 360f, 1.0f, 0.7f);
         this.bombList = new LinkedList<>();
         this.bombMap = new HashMap<>();
     }

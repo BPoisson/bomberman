@@ -6,8 +6,8 @@ import global.Constants;
 
 import java.awt.*;
 import java.net.InetAddress;
-import java.util.List;
 import java.util.*;
+import java.util.List;
 
 public class Player extends Entity {
     private int speed;
