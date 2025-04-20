@@ -54,6 +54,22 @@ public class GameClient {
         }
     }
 
+    public JSONObject receiveMapMessage() {
+        byte[] buffer = new byte[32768];
+        DatagramPacket packet = new DatagramPacket(buffer, buffer.length, address, port);
+
+        try {
+            socket.receive(packet);
+            String response = new String(packet.getData(), packet.getOffset(), packet.getLength()).trim();
+
+            System.out.println("Client received:\n" + response);
+
+            return new JSONObject(response);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public List<JSONObject> receiveMessages() {
         return socketListener.receive();
     }

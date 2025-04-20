@@ -2,6 +2,7 @@ package game.server;
 
 import game.Direction;
 import game.server.entities.Bomb;
+import game.server.entities.GameMap;
 import game.server.entities.Player;
 import global.Constants;
 import global.JSONCreator;
@@ -15,6 +16,7 @@ import java.net.SocketException;
 import java.util.*;
 
 public class GameServer {
+    private GameMap gameMap;
     private List<Player> players;
     private Map<UUID, Player> playerMap;
     private byte[] buffer;
@@ -22,6 +24,7 @@ public class GameServer {
     private ServerSocketListener serverSocketListener;
 
     public GameServer() {
+        this.gameMap = new GameMap();
         this.players = new LinkedList<>();
         this.playerMap = new HashMap<>();
         this.buffer = new byte[256];
@@ -34,15 +37,21 @@ public class GameServer {
     }
 
     public void run() {
-        getPlayers();
-        sendGameStart();
-        serverSocketListener.startServerSocketListenerThread();
+        JSONObject gameMapJson = JSONCreator.createGameMapJson(gameMap);
 
+        getPlayers(gameMapJson);
+        sendGameStart();
+
+        serverSocketListener.startServerSocketListenerThread();
         while (true) {
-            System.out.println("Server running.");
             handleGameUpdates();
             expireBombs();
         }
+    }
+
+    private void sendGameMap(Player player, JSONObject gameMapJson) {
+        sendMessage(gameMapJson.toString(), player.address, player.port);
+        System.out.println("Server sent game map.");
     }
 
     private void sendGameStart() {
@@ -54,7 +63,7 @@ public class GameServer {
         System.out.println("Server sent game start.");
     }
 
-    private void getPlayers() {
+    private void getPlayers(JSONObject gameMapJson) {
         System.out.println("Server getting players...");
 
         DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
@@ -67,6 +76,10 @@ public class GameServer {
                 int port = packet.getPort();
                 packet = new DatagramPacket(buffer, buffer.length, address, port);
                 String playerData = new String(packet.getData(), packet.getOffset(), packet.getLength()).trim();
+                UUID playerUUID = UUID.fromString(new JSONObject(playerData).getString(Constants.PLAYER_UUID));
+                if (playerMap.containsKey(playerUUID)) {
+                    continue;
+                }
                 int playerNum = players.isEmpty() ? 1 : 2;
                 Player player = createPlayer(playerNum, new JSONObject(playerData), address, port);
 
@@ -75,6 +88,7 @@ public class GameServer {
                 players.add(player);
                 playerMap.put(player.uuid, player);
                 sendMessage(JSONCreator.playerAck(player.x, player.y).toString(), address, port);
+                sendGameMap(player, gameMapJson);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
@@ -94,6 +108,11 @@ public class GameServer {
         List<JSONObject> messages = serverSocketListener.receive();
 
         for (JSONObject message : messages) {
+            if (!message.has(Constants.ACTION)) {
+                System.err.println("Server ignoring message: " + message);
+                continue;
+            }
+
             UUID playerUUID = UUID.fromString(message.getString(Constants.PLAYER_UUID));
             Player player = playerMap.get(playerUUID);
             String action = message.getString(Constants.ACTION);

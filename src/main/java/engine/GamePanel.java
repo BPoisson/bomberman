@@ -4,9 +4,10 @@ import game.Direction;
 import game.client.GameClient;
 import game.client.entities.Bomb;
 import game.client.entities.Player;
-import game.server.entities.GameMap;
+import game.server.entities.Block;
 import global.Constants;
 import global.JSONCreator;
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import javax.swing.*;
@@ -22,7 +23,7 @@ public class GamePanel extends JPanel implements Runnable {
     Player enemy;
     Map<UUID, Player> playerMap;
     GameClient gameClient;
-    GameMap gameMap;
+    List<Entity> gameMapEntities;
 
     public GamePanel() {
         keyHandler = new KeyHandler();
@@ -31,7 +32,6 @@ public class GamePanel extends JPanel implements Runnable {
         player = new Player();
         playerMap = new HashMap<>();
         playerMap.put(player.uuid, player);
-        gameMap = new GameMap();
 
         setPreferredSize(new Dimension(Constants.PANEL_WIDTH, Constants.PANEL_HEIGHT));
         setBackground(Color.WHITE);
@@ -51,6 +51,7 @@ public class GamePanel extends JPanel implements Runnable {
         long nextDrawTime = System.nanoTime() + Constants.DRAW_INTERVAL;
 
         registerPlayer();
+        this.gameMapEntities = getGameMapEntities();
         getGameStart();
         gameClient.startSocketListener();
 
@@ -82,8 +83,48 @@ public class GamePanel extends JPanel implements Runnable {
         System.out.println("Player " + player.uuid + " registered.");
     }
 
+    private List<Entity> getGameMapEntities() {
+        System.out.println("Getting game map...");
+
+        gameClient.sendMessage(JSONCreator.getGameMap(player.uuid).toString());
+        JSONObject response = gameClient.receiveMapMessage();
+
+        System.out.println("Client has received game map " + response.toString());
+
+        if (!response.has(Constants.GAME_MAP)) {
+            throw new RuntimeException("Failed to get game map data from server.");
+        }
+
+        List<Entity> gameMapEntities = new LinkedList<>();
+        JSONArray gameMapJson = response.getJSONArray(Constants.GAME_MAP);
+        for (int i = 0; i < gameMapJson.length(); i++) {
+            JSONObject jsonObject = gameMapJson.getJSONObject(i);
+
+            if (jsonObject.getString(Constants.ENTITY).equals(Constants.BLOCK)) {
+                UUID blockUUID = UUID.fromString(jsonObject.getString(Constants.UUID));
+                int blockX = jsonObject.getInt(Constants.X);
+                int blockY = jsonObject.getInt(Constants.Y);
+
+                gameMapEntities.add(new Block(blockUUID, blockX, blockY));
+            } else if (jsonObject.getString(Constants.ENTITY).equals(Constants.BOX)) {
+                UUID boxUUID = UUID.fromString(jsonObject.getString(Constants.UUID));
+                int boxX = jsonObject.getInt(Constants.X);
+                int boxY = jsonObject.getInt(Constants.Y);
+
+                gameMapEntities.add(new game.server.entities.Box(boxUUID, boxX, boxY));
+            } else {
+                throw new RuntimeException("Invalid game map entity type: " + jsonObject.getString(Constants.ENTITY));
+            }
+        }
+        return gameMapEntities;
+    }
+
     private void getGameStart() {
         JSONObject gameStart = gameClient.receiveMessage();
+
+        while (!gameStart.has(Constants.START)) {
+            gameStart = gameClient.receiveMessage();
+        }
 
         if (!gameStart.getBoolean(Constants.START)) {
             throw new RuntimeException("Did not receive game start from server.");
@@ -133,11 +174,13 @@ public class GamePanel extends JPanel implements Runnable {
         }
 
         List<Graphics2D> mapGraphics2DList = new LinkedList<>();
-        for (Entity mapEntity : gameMap.mapEntities) {
-            Graphics2D mapGraphics2D = (Graphics2D) graphics;
-            mapGraphics2D.setColor(mapEntity.color);
-            mapGraphics2D.fillRect(mapEntity.x, mapEntity.y, Constants.TILE_SIZE, Constants.TILE_SIZE);
-            mapGraphics2DList.add(mapGraphics2D);
+        if (gameMapEntities != null) {
+            for (Entity mapEntity : gameMapEntities) {
+                Graphics2D mapGraphics2D = (Graphics2D) graphics;
+                mapGraphics2D.setColor(mapEntity.color);
+                mapGraphics2D.fillRect(mapEntity.x, mapEntity.y, Constants.TILE_SIZE, Constants.TILE_SIZE);
+                mapGraphics2DList.add(mapGraphics2D);
+            }
         }
 
         playerGraphics2D.dispose();
