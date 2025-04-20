@@ -37,9 +37,8 @@ public class GameServer {
     }
 
     public void run() {
-        JSONObject gameMapJson = JSONCreator.createGameMapJson(gameMap);
-
-        getPlayers(gameMapJson);
+        getPlayers();
+        sendGameMap();
         sendGameStart();
 
         serverSocketListener.startServerSocketListenerThread();
@@ -49,32 +48,16 @@ public class GameServer {
         }
     }
 
-    private void sendGameMap(Player player, JSONObject gameMapJson) {
-        sendMessage(gameMapJson.toString(), player.address, player.port);
-        System.out.println("Server sent game map.");
-    }
-
-    private void sendGameStart() {
-        Player player1 = players.get(0);
-        Player player2 = players.get(1);
-
-        sendMessage(JSONCreator.gameStart(player2.uuid, player2.x, player2.y).toString(), player1.address, player1.port);
-        sendMessage(JSONCreator.gameStart(player1.uuid, player1.x, player1.y).toString(), player2.address, player2.port);
-        System.out.println("Server sent game start.");
-    }
-
-    private void getPlayers(JSONObject gameMapJson) {
+    private void getPlayers() {
         System.out.println("Server getting players...");
 
         DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
-
         while (players.size() < 2) {
             try {
                 socket.receive(packet);
 
                 InetAddress address = packet.getAddress();
                 int port = packet.getPort();
-                packet = new DatagramPacket(buffer, buffer.length, address, port);
                 String playerData = new String(packet.getData(), packet.getOffset(), packet.getLength()).trim();
                 UUID playerUUID = UUID.fromString(new JSONObject(playerData).getString(Constants.PLAYER_UUID));
                 if (playerMap.containsKey(playerUUID)) {
@@ -88,12 +71,34 @@ public class GameServer {
                 players.add(player);
                 playerMap.put(player.uuid, player);
                 sendMessage(JSONCreator.playerAck(player.x, player.y).toString(), address, port);
-                sendGameMap(player, gameMapJson);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
         }
         System.out.println("Server got 2 players: " + players.size());
+    }
+
+    private void sendGameMap() {
+        JSONObject gameMapJson = JSONCreator.createGameMapJson(gameMap);
+        Player player1 = players.get(0);
+        Player player2 = players.get(1);
+
+        sendMessage(gameMapJson.toString(), player1.address, player1.port);
+        System.out.println("Server sent game map to: " + player1.uuid);
+
+        sendMessage(gameMapJson.toString(), player2.address, player2.port);
+        System.out.println("Server sent game map to: " + player2.uuid);
+    }
+
+    private void sendGameStart() {
+        Player player1 = players.get(0);
+        Player player2 = players.get(1);
+
+        sendMessage(JSONCreator.gameStart(player2.uuid, player2.x, player2.y).toString(), player1.address, player1.port);
+        System.out.println("Server sent game start to: " + player2.uuid);
+
+        sendMessage(JSONCreator.gameStart(player1.uuid, player1.x, player1.y).toString(), player2.address, player2.port);
+        System.out.println("Server sent game start to: " + player1.uuid);
     }
 
     private Player createPlayer(int playerNum, JSONObject playerData, InetAddress address, int port) {

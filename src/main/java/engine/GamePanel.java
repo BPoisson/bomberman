@@ -51,7 +51,7 @@ public class GamePanel extends JPanel implements Runnable {
         long nextDrawTime = System.nanoTime() + Constants.DRAW_INTERVAL;
 
         registerPlayer();
-        this.gameMapEntities = getGameMapEntities();
+        this.gameMapEntities = getGameMap();
         getGameStart();
         gameClient.startSocketListener();
 
@@ -83,17 +83,15 @@ public class GamePanel extends JPanel implements Runnable {
         System.out.println("Player " + player.uuid + " registered.");
     }
 
-    private List<Entity> getGameMapEntities() {
+    private List<Entity> getGameMap() {
         System.out.println("Getting game map...");
 
-        gameClient.sendMessage(JSONCreator.getGameMap(player.uuid).toString());
         JSONObject response = gameClient.receiveMapMessage();
 
-        System.out.println("Client has received game map " + response.toString());
-
-        if (!response.has(Constants.GAME_MAP)) {
-            throw new RuntimeException("Failed to get game map data from server.");
+        while (!response.has(Constants.GAME_MAP)) {
+            System.err.println("Client ignoring: " + response);
         }
+        System.out.println("Client has received game map " + response);
 
         List<Entity> gameMapEntities = new LinkedList<>();
         JSONArray gameMapJson = response.getJSONArray(Constants.GAME_MAP);

@@ -8,7 +8,7 @@ import java.net.*;
 import java.util.List;
 
 public class GameClient {
-    int port;
+    private int port;
     private DatagramSocket socket;
     private InetAddress address;
     private SocketListener socketListener;
