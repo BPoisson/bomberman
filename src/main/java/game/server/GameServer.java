@@ -1,10 +1,12 @@
 package game.server;
 
+import engine.Entity;
 import game.Direction;
 import game.server.entities.Bomb;
 import game.server.entities.GameMap;
 import game.server.entities.Player;
 import global.Constants;
+import global.Coordinate;
 import global.JSONCreator;
 import org.json.JSONObject;
 
@@ -135,6 +137,11 @@ public class GameServer {
     }
 
     private void handleMovement(Player player, Direction direction) {
+        Coordinate playerNextCoord = player.getNextPosition(direction);
+
+        if (checkMapCollision(playerNextCoord)) {
+            return;
+        }
         player.move(direction);
 
         for (Player p : players) {
@@ -165,6 +172,37 @@ public class GameServer {
             }
         }
     }
+    
+    private boolean checkMapCollision(Coordinate coordinate) {
+        int playerXMin = coordinate.x;
+        int playerYMin = coordinate.y;
+        int playerXMax = coordinate.x + Constants.TILE_SIZE;
+        int playerYMax = coordinate.y + Constants.TILE_SIZE;
+        
+        for (Entity entity : gameMap.mapEntities) {
+            int entityXMin = entity.x;
+            int entityYMin = entity.y;
+            int entityXMax = entity.x + Constants.TILE_SIZE;
+            int entityYMax = entity.y + Constants.TILE_SIZE;
+
+            if ((entityXMin <= playerXMax && playerXMax <= entityXMax) || (entityXMin <= playerXMin && playerXMin <= entityXMax)) {
+                if ((entityYMin <= playerYMax && playerYMax <= entityYMax) || (entityYMin <= playerYMin && playerYMin <= entityYMax)) {
+                    System.out.println("Player: " + playerXMin + "," + playerYMin + " : " + playerXMax + "," + playerYMax);
+                    System.out.println("Entity: " + entityXMin + "," + entityYMin + " : " + entityXMax + "," + entityYMax);
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+    
+//|       |
+//    |       |
+//
+//
+//
+//        |       |
+//    |       |
 
     public void sendMessage(String message, InetAddress address, int port) {
         byte[] buffer = message.getBytes();

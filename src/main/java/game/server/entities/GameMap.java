@@ -47,9 +47,9 @@ public class GameMap {
                     continue;
                 }
                 if (mapArray[row][col] == Constants.BLOCK_TYPE || rand.nextInt(10) == 0) {
-                    mapEntities.add(new Block(col * Constants.BLOCK_SIZE * Constants.BLOCK_SCALE, row * Constants.BLOCK_SIZE * Constants.BLOCK_SCALE));
+                    mapEntities.add(new Block(col * Constants.TILE_SIZE, row * Constants.TILE_SIZE));
                 } else if (rand.nextInt(5) == 0) {
-                    mapEntities.add(new Box(col * Constants.BLOCK_SIZE * Constants.BLOCK_SCALE, row * Constants.BLOCK_SIZE * Constants.BLOCK_SCALE));
+                    mapEntities.add(new Box(col * Constants.TILE_SIZE, row * Constants.TILE_SIZE));
                 }
             }
         }

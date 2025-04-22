@@ -3,6 +3,7 @@ package game.server.entities;
 import engine.Entity;
 import game.Direction;
 import global.Constants;
+import global.Coordinate;
 
 import java.awt.*;
 import java.net.InetAddress;
@@ -42,6 +43,31 @@ public class Player extends Entity {
         this.bombMap = new HashMap<>();
         this.address = address;
         this.port = port;
+    }
+
+    public Coordinate getNextPosition(Direction dir) {
+        Coordinate coordinate = new Coordinate(x, y);
+
+        switch (dir) {
+            case Direction.UP:
+                coordinate.y -= speed;
+                direction = Direction.UP;
+                break;
+            case Direction.DOWN:
+                coordinate.y += speed;
+                direction = Direction.DOWN;
+                break;
+            case Direction.LEFT:
+                coordinate.x -= speed;
+                direction = Direction.LEFT;
+                break;
+            case Direction.RIGHT:
+                coordinate.x += speed;
+                direction = Direction.RIGHT;
+                break;
+            default:
+        }
+        return coordinate;
     }
 
     public void move(Direction dir) {
