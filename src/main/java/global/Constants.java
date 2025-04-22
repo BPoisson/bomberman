@@ -20,9 +20,9 @@ public class Constants {
 
     // Player constants.
     public static final int PLAYER_SPEED = 3;
-    public static final int PLAYER_1_X = 100;
-    public static final int PLAYER_2_X = 800;
-    public static final int PLAYER_Y = 100;
+    public static final int PLAYER_1_X = BLOCK_SIZE * BLOCK_SCALE * 2;
+    public static final int PLAYER_2_X = PANEL_WIDTH - (BLOCK_SIZE * BLOCK_SCALE * 3);
+    public static final int PLAYER_Y = PANEL_HEIGHT / 2;
 
     // Entity constants.
     public static final long BOMB_TIMER_NANO = ONE_SECOND_NANO * 4;
