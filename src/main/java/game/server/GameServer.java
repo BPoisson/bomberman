@@ -1,6 +1,5 @@
 package game.server;
 
-import engine.Entity;
 import game.Direction;
 import game.server.entities.Bomb;
 import game.server.entities.GameMap;
@@ -139,7 +138,7 @@ public class GameServer {
     private void handleMovement(Player player, Direction direction) {
         Coordinate playerNextCoord = player.getNextPosition(direction);
 
-        if (checkMapCollision(playerNextCoord)) {
+        if (player.checkCollision(playerNextCoord, gameMap.mapEntities)) {
             return;
         }
         player.move(direction);
@@ -171,29 +170,6 @@ public class GameServer {
                 }
             }
         }
-    }
-    
-    private boolean checkMapCollision(Coordinate coordinate) {
-        int playerXMin = coordinate.x + 1;
-        int playerYMin = coordinate.y + 1;
-        int playerXMax = coordinate.x + Constants.TILE_SIZE - 1;
-        int playerYMax = coordinate.y + Constants.TILE_SIZE - 1;
-        
-        for (Entity entity : gameMap.mapEntities) {
-            int entityXMin = entity.x;
-            int entityYMin = entity.y;
-            int entityXMax = entity.x + Constants.TILE_SIZE;
-            int entityYMax = entity.y + Constants.TILE_SIZE;
-
-            if ((entityXMin <= playerXMax && playerXMax <= entityXMax) || (entityXMin <= playerXMin && playerXMin <= entityXMax)) {
-                if ((entityYMin <= playerYMax && playerYMax <= entityYMax) || (entityYMin <= playerYMin && playerYMin <= entityYMax)) {
-                    System.out.println("Player: " + playerXMin + "," + playerYMin + " : " + playerXMax + "," + playerYMax);
-                    System.out.println("Entity: " + entityXMin + "," + entityYMin + " : " + entityXMax + "," + entityYMax);
-                    return true;
-                }
-            }
-        }
-        return false;
     }
 
     public void sendMessage(String message, InetAddress address, int port) {
