@@ -174,10 +174,10 @@ public class GameServer {
     }
     
     private boolean checkMapCollision(Coordinate coordinate) {
-        int playerXMin = coordinate.x;
-        int playerYMin = coordinate.y;
-        int playerXMax = coordinate.x + Constants.TILE_SIZE;
-        int playerYMax = coordinate.y + Constants.TILE_SIZE;
+        int playerXMin = coordinate.x + 1;
+        int playerYMin = coordinate.y + 1;
+        int playerXMax = coordinate.x + Constants.TILE_SIZE - 1;
+        int playerYMax = coordinate.y + Constants.TILE_SIZE - 1;
         
         for (Entity entity : gameMap.mapEntities) {
             int entityXMin = entity.x;
@@ -195,14 +195,6 @@ public class GameServer {
         }
         return false;
     }
-    
-//|       |
-//    |       |
-//
-//
-//
-//        |       |
-//    |       |
 
     public void sendMessage(String message, InetAddress address, int port) {
         byte[] buffer = message.getBytes();

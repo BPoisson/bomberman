@@ -247,22 +247,18 @@ public class GamePanel extends JPanel implements Runnable {
     }
 
     private void handleInput() {
-        Direction dir = null;
-
         if (keyHandler.upPressed) {
-            dir = Direction.UP;
-        } else if (keyHandler.downPressed) {
-            dir = Direction.DOWN;
-        } else if (keyHandler.leftPressed) {
-            dir = Direction.LEFT;
-        } else if (keyHandler.rightPressed) {
-            dir = Direction.RIGHT;
+            gameClient.sendMessage(JSONCreator.move(player.uuid, Direction.UP).toString());
         }
-
-        if (dir != null) {
-            gameClient.sendMessage(JSONCreator.move(player.uuid, dir).toString());
+        if (keyHandler.downPressed) {
+            gameClient.sendMessage(JSONCreator.move(player.uuid, Direction.DOWN).toString());
         }
-
+        if (keyHandler.leftPressed) {
+            gameClient.sendMessage(JSONCreator.move(player.uuid, Direction.LEFT).toString());
+        }
+        if (keyHandler.rightPressed) {
+            gameClient.sendMessage(JSONCreator.move(player.uuid, Direction.RIGHT).toString());
+        }
         if (keyHandler.spacePressed) {
             gameClient.sendMessage(JSONCreator.bomb(player.uuid).toString());
         }

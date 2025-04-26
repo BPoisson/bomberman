@@ -11,7 +11,7 @@ public class Constants {
     public static final int PANEL_HEIGHT = PANEL_ROWS * TILE_SIZE;
 
     // Time constants.
-    public static final int FRAME_RATE_SECONDS = 60;
+    public static final int FRAME_RATE_SECONDS = 90;
     public static final long FRAME_TIME = 1_000_000_000;
     public static final long ONE_SECOND_MILLIS = 1_000;
     public static final long ONE_MILLI_NANO = 1_000_000;
@@ -19,7 +19,7 @@ public class Constants {
     public static final long DRAW_INTERVAL = Constants.FRAME_TIME / FRAME_RATE_SECONDS;
 
     // Player constants.
-    public static final int PLAYER_SPEED = 3;
+    public static final int PLAYER_SPEED = 1;
     public static final int PLAYER_1_X = BLOCK_SIZE * BLOCK_SCALE * 2;
     public static final int PLAYER_2_X = PANEL_WIDTH - (BLOCK_SIZE * BLOCK_SCALE * 3);
     public static final int PLAYER_Y = PANEL_HEIGHT / 2;
