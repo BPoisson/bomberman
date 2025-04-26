@@ -1,5 +1,6 @@
 package game.server;
 
+import engine.Entity;
 import game.Direction;
 import game.server.entities.Bomb;
 import game.server.entities.GameMap;
@@ -180,5 +181,11 @@ public class GameServer {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public List<Entity> getGameEntities() {
+        List<Entity> gameEntities = new LinkedList<>(gameMap.mapEntities);
+
+        return gameEntities;
     }
 }

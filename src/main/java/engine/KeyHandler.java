@@ -9,6 +9,7 @@ public class KeyHandler implements KeyListener {
     boolean leftPressed = false;
     boolean rightPressed = false;
     boolean spacePressed = false;
+    boolean spaceReleased = true;
 
     @Override
     public void keyTyped(KeyEvent keyEvent) {}
@@ -25,8 +26,9 @@ public class KeyHandler implements KeyListener {
             leftPressed = true;
         } else if (keyCode == KeyEvent.VK_RIGHT || keyCode == KeyEvent.VK_D) {
             rightPressed = true;
-        } else if (keyCode == KeyEvent.VK_SPACE) {
+        } else if (spaceReleased && keyCode == KeyEvent.VK_SPACE) {
             spacePressed = true;
+            spaceReleased = false;
         }
     }
 
@@ -44,6 +46,7 @@ public class KeyHandler implements KeyListener {
             rightPressed = false;
         } else if (keyCode == KeyEvent.VK_SPACE) {
             spacePressed = false;
+            spaceReleased = true;
         }
     }
 
@@ -53,5 +56,6 @@ public class KeyHandler implements KeyListener {
         leftPressed = false;
         rightPressed = false;
         spacePressed = false;
+        spaceReleased = true;
     }
 }

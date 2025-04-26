@@ -31,7 +31,7 @@ public class ServerSocketListener implements Runnable {
             socket.receive(packet);
             String received = new String(packet.getData(), packet.getOffset(), packet.getLength()).trim();
 
-            System.out.println("Server received:\n" + received);
+//            System.out.println("Server received:\n" + received);
 
             this.buffer.add(new JSONObject(received));
         } catch (IOException e) {

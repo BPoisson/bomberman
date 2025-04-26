@@ -46,7 +46,7 @@ public class GameClient {
             socket.receive(packet);
             String response = new String(packet.getData(), packet.getOffset(), packet.getLength()).trim();
 
-            System.out.println("Client received:\n" + response);
+//            System.out.println("Client received:\n" + response);
 
             return new JSONObject(response);
         } catch (IOException e) {
@@ -62,7 +62,7 @@ public class GameClient {
             socket.receive(packet);
             String response = new String(packet.getData(), packet.getOffset(), packet.getLength()).trim();
 
-            System.out.println("Client received:\n" + response);
+//            System.out.println("Client received:\n" + response);
 
             return new JSONObject(response);
         } catch (IOException e) {

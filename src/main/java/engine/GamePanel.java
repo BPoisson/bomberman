@@ -261,6 +261,7 @@ public class GamePanel extends JPanel implements Runnable {
         }
         if (keyHandler.spacePressed) {
             gameClient.sendMessage(JSONCreator.bomb(player.uuid).toString());
+            keyHandler.spacePressed = false;
         }
     }
 }

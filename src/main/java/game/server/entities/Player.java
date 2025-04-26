@@ -93,31 +93,12 @@ public class Player extends Entity {
     }
 
     public Bomb placeBomb() {
+        // Check bomb cooldown.
         if (System.nanoTime() < bombCooldown) {
             return null;
         }
 
-        Bomb bomb;
-        switch (direction) {
-            case Direction.UP: {
-                bomb = new Bomb(x, y - Constants.TILE_SIZE);
-                break;
-            }
-            case Direction.DOWN: {
-                bomb = new Bomb(x, y + Constants.TILE_SIZE);
-                break;
-            }
-            case Direction.LEFT: {
-                bomb = new Bomb(x - Constants.TILE_SIZE, y);
-                break;
-            }
-            case Direction.RIGHT: {
-                bomb = new Bomb(x + Constants.TILE_SIZE, y);
-                break;
-            }
-            default:
-                throw new IllegalArgumentException("Player has no direction. Can't place bomb");
-        }
+        Bomb bomb = new Bomb(x, y);
         bombList.add(bomb);
         bombMap.put(bomb.uuid, bomb);
         bombCooldown = System.nanoTime() + Constants.ONE_SECOND_NANO * 2;
