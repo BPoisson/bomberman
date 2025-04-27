@@ -1,5 +1,6 @@
 package engine;
 
+import game.server.entities.Player;
 import global.Constants;
 import global.Coordinate;
 
@@ -14,6 +15,10 @@ public abstract class Entity {
     public Color color;
     
     public boolean checkCollision(Entity entity) {
+        if (entity instanceof Player && this instanceof Player && entity.uuid.equals(this.uuid)) {
+            return false;
+        }
+
         int xMin = this.x + 1;
         int yMin = this.y + 1;
         int xMax = this.x + Constants.TILE_SIZE - 1;
@@ -40,6 +45,10 @@ public abstract class Entity {
         int yMax = this.y + Constants.TILE_SIZE - 1;
 
         for (Entity entity : entities) {
+            if (entity instanceof Player && this instanceof Player && entity.uuid.equals(this.uuid)) {
+                continue;
+            }
+
             int entityXMin = entity.x;
             int entityYMin = entity.y;
             int entityXMax = entity.x + Constants.TILE_SIZE;
@@ -63,6 +72,10 @@ public abstract class Entity {
         int yMax = coordinate.y + Constants.TILE_SIZE - 1;
 
         for (Entity entity : entities) {
+            if (entity instanceof Player && this instanceof Player && entity.uuid.equals(this.uuid)) {
+                continue;
+            }
+
             int entityXMin = entity.x;
             int entityYMin = entity.y;
             int entityXMax = entity.x + Constants.TILE_SIZE;

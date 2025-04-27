@@ -16,4 +16,8 @@ public class Bomb extends Entity {
         this.color = Color.BLACK;
         this.timer = System.nanoTime() + Constants.BOMB_TIMER_NANO;
     }
+
+    public boolean isExpired() {
+        return timer <= System.nanoTime();
+    }
 }

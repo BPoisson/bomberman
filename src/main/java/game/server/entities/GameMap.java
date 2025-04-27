@@ -46,9 +46,9 @@ public class GameMap {
                 if (mapArray[row][col] == -1) {
                     continue;
                 }
-                if (mapArray[row][col] == Constants.BLOCK_TYPE || rand.nextInt(10) == 0) {
+                if (mapArray[row][col] == Constants.BLOCK_TYPE || rand.nextInt(8) == 0) {
                     mapEntities.add(new Block(col * Constants.TILE_SIZE, row * Constants.TILE_SIZE));
-                } else if (rand.nextInt(5) == 0) {
+                } else if (rand.nextInt(3) == 0) {
                     mapEntities.add(new Box(col * Constants.TILE_SIZE, row * Constants.TILE_SIZE));
                 }
             }

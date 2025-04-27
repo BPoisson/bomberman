@@ -138,8 +138,9 @@ public class GameServer {
 
     private void handleMovement(Player player, Direction direction) {
         Coordinate playerNextCoord = player.getNextPosition(direction);
+        List<Entity> gameEntities = getGameEntities();
 
-        if (player.checkCollision(playerNextCoord, gameMap.mapEntities)) {
+        if (player.checkCollision(playerNextCoord, gameEntities)) {
             return;
         }
         player.move(direction);
@@ -185,6 +186,7 @@ public class GameServer {
 
     public List<Entity> getGameEntities() {
         List<Entity> gameEntities = new LinkedList<>(gameMap.mapEntities);
+        gameEntities.addAll(players);
 
         return gameEntities;
     }

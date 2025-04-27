@@ -101,7 +101,7 @@ public class Player extends Entity {
         Bomb bomb = new Bomb(x, y);
         bombList.add(bomb);
         bombMap.put(bomb.uuid, bomb);
-        bombCooldown = System.nanoTime() + Constants.ONE_SECOND_NANO * 2;
+        bombCooldown = System.nanoTime() + Constants.BOMB_COOLDOWN;
 
         return bomb;
     }
@@ -112,9 +112,8 @@ public class Player extends Entity {
             return expiredBombs;
         }
 
-        final long currTime = System.nanoTime();
         for (Bomb bomb : bombList) {
-            if (bomb.timer <= currTime) {
+            if (bomb.isExpired()) {
                 expiredBombs.add(bomb);
                 bombMap.remove(bomb.uuid);
             }
