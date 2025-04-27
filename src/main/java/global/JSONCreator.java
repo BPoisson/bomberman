@@ -109,9 +109,21 @@ public class JSONCreator {
         return jsonObj;
     }
 
-    public static JSONObject getGameMap(UUID playerUUID) {
+    public static JSONObject explosion(UUID uuid, UUID explosionUUID, int x, int y) {
         JSONObject jsonObj = new JSONObject();
-        jsonObj.put(Constants.PLAYER_UUID, playerUUID);
+        jsonObj.put(Constants.ACTION, Constants.EXPLOSION);
+        jsonObj.put(Constants.PLAYER_UUID, uuid);
+        jsonObj.put(Constants.EXPLOSION_UUID, explosionUUID);
+        jsonObj.put(Constants.X, x);
+        jsonObj.put(Constants.Y, y);
+
+        return jsonObj;
+    }
+
+    public static JSONObject exploded(UUID explodedUUID) {
+        JSONObject jsonObj = new JSONObject();
+        jsonObj.put(Constants.ACTION, Constants.EXPLODED);
+        jsonObj.put(Constants.EXPLODED_UUID, explodedUUID);
 
         return jsonObj;
     }

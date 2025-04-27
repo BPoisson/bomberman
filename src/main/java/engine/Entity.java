@@ -30,8 +30,28 @@ public abstract class Entity {
 
         if ((entityXMin <= xMax && xMax <= entityXMax) || (entityXMin <= xMin && xMin <= entityXMax)) {
             if ((entityYMin <= yMax && yMax <= entityYMax) || (entityYMin <= yMin && yMin <= entityYMax)) {
-//                System.out.println("This: " + xMin + "," + yMin + " : " + xMax + "," + yMax);
-//                System.out.println("Entity: " + entityXMin + "," + entityYMin + " : " + entityXMax + "," + entityYMax);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean checkCollision(Coordinate coordinate, Entity entity) {
+        if (entity instanceof Player && this instanceof Player && entity.uuid.equals(this.uuid)) {
+            return false;
+        }
+
+        int xMin = coordinate.x + 1;
+        int yMin = coordinate.y + 1;
+        int xMax = coordinate.x + Constants.TILE_SIZE - 1;
+        int yMax = coordinate.y + Constants.TILE_SIZE - 1;
+        int entityXMin = entity.x;
+        int entityYMin = entity.y;
+        int entityXMax = entity.x + Constants.TILE_SIZE;
+        int entityYMax = entity.y + Constants.TILE_SIZE;
+
+        if ((entityXMin <= xMax && xMax <= entityXMax) || (entityXMin <= xMin && xMin <= entityXMax)) {
+            if ((entityYMin <= yMax && yMax <= entityYMax) || (entityYMin <= yMin && yMin <= entityYMax)) {
                 return true;
             }
         }
@@ -56,8 +76,6 @@ public abstract class Entity {
 
             if ((entityXMin <= xMax && xMax <= entityXMax) || (entityXMin <= xMin && xMin <= entityXMax)) {
                 if ((entityYMin <= yMax && yMax <= entityYMax) || (entityYMin <= yMin && yMin <= entityYMax)) {
-//                    System.out.println("Player: " + xMin + "," + yMin + " : " + xMax + "," + yMax);
-//                    System.out.println("Entity: " + entityXMin + "," + entityYMin + " : " + entityXMax + "," + entityYMax);
                     return true;
                 }
             }
@@ -83,8 +101,6 @@ public abstract class Entity {
 
             if ((entityXMin <= xMax && xMax <= entityXMax) || (entityXMin <= xMin && xMin <= entityXMax)) {
                 if ((entityYMin <= yMax && yMax <= entityYMax) || (entityYMin <= yMin && yMin <= entityYMax)) {
-//                    System.out.println("Player: " + xMin + "," + yMin + " : " + xMax + "," + yMax);
-//                    System.out.println("Entity: " + entityXMin + "," + entityYMin + " : " + entityXMax + "," + entityYMax);
                     return true;
                 }
             }

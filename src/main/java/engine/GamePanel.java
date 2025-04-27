@@ -4,7 +4,9 @@ import game.Direction;
 import game.client.GameClient;
 import game.client.entities.Bomb;
 import game.client.entities.Player;
-import game.server.entities.Block;
+import game.client.entities.Block;
+import game.client.entities.Box;
+import game.client.entities.Explosion;
 import global.Constants;
 import global.JSONCreator;
 import org.json.JSONArray;
@@ -109,7 +111,7 @@ public class GamePanel extends JPanel implements Runnable {
                 int boxX = jsonObject.getInt(Constants.X);
                 int boxY = jsonObject.getInt(Constants.Y);
 
-                gameMapEntities.add(new game.server.entities.Box(boxUUID, boxX, boxY));
+                gameMapEntities.add(new Box(boxUUID, boxX, boxY));
             } else {
                 throw new RuntimeException("Invalid game map entity type: " + jsonObject.getString(Constants.ENTITY));
             }
@@ -140,37 +142,6 @@ public class GamePanel extends JPanel implements Runnable {
     public void paintComponent(Graphics graphics) {
         super.paintComponent(graphics);
 
-        Graphics2D playerGraphics2D = (Graphics2D) graphics;
-        List<Graphics2D> playerBombGraphics2DList = new LinkedList<>();
-
-        // Draw player.
-        playerGraphics2D.setColor(player.color);
-        playerGraphics2D.fillRect(player.x, player.y, Constants.TILE_SIZE, Constants.TILE_SIZE);
-
-        // Draw player bombs.
-        for (Bomb bomb : player.bombList) {
-            Graphics2D bombGraphics2D = (Graphics2D) graphics;
-            bombGraphics2D.setColor(bomb.color);
-            bombGraphics2D.fillOval(bomb.x, bomb.y, Constants.TILE_SIZE, Constants.TILE_SIZE);
-            playerBombGraphics2DList.add(bombGraphics2D);
-        }
-
-        Graphics2D enemyGraphics2D = (Graphics2D) graphics;
-        List<Graphics2D> enemyBombGraphics2DList = new LinkedList<>();
-        if (enemy != null) {
-            // Draw enemy.
-            enemyGraphics2D.setColor(enemy.color);
-            enemyGraphics2D.fillRect(enemy.x, enemy.y, Constants.TILE_SIZE, Constants.TILE_SIZE);
-
-            // Draw player bombs.
-            for (Bomb bomb : enemy.bombList) {
-                Graphics2D bombGraphics2D = (Graphics2D) graphics;
-                bombGraphics2D.setColor(bomb.color);
-                bombGraphics2D.fillOval(bomb.x, bomb.y, Constants.TILE_SIZE, Constants.TILE_SIZE);
-                enemyBombGraphics2DList.add(bombGraphics2D);
-            }
-        }
-
         List<Graphics2D> mapGraphics2DList = new LinkedList<>();
         if (gameMapEntities != null) {
             for (Entity mapEntity : gameMapEntities) {
@@ -181,11 +152,45 @@ public class GamePanel extends JPanel implements Runnable {
             }
         }
 
+        Graphics2D playerGraphics2D = (Graphics2D) graphics;
+        List<Graphics2D> playerBombGraphics2DList = new LinkedList<>();
+
+        // Draw player.
+        playerGraphics2D.setColor(player.color);
+        playerGraphics2D.fillRect(player.x, player.y, Constants.TILE_SIZE, Constants.TILE_SIZE);
+
+        // Draw enemy.
+        Graphics2D enemyGraphics2D = (Graphics2D) graphics;
+        List<Graphics2D> enemyBombGraphics2DList = new LinkedList<>();
+
+        if (enemy != null) {
+            enemyGraphics2D.setColor(enemy.color);
+            enemyGraphics2D.fillRect(enemy.x, enemy.y, Constants.TILE_SIZE, Constants.TILE_SIZE);
+        }
+
+        // Draw player bombs.
+        for (Bomb bomb : player.bombList) {
+            Graphics2D bombGraphics2D = (Graphics2D) graphics;
+            bombGraphics2D.setColor(bomb.color);
+            bombGraphics2D.fillOval(bomb.x, bomb.y, Constants.TILE_SIZE, Constants.TILE_SIZE);
+            playerBombGraphics2DList.add(bombGraphics2D);
+        }
+
+        if (enemy != null) {
+            // Draw enemy bombs.
+            for (Bomb bomb : enemy.bombList) {
+                Graphics2D bombGraphics2D = (Graphics2D) graphics;
+                bombGraphics2D.setColor(bomb.color);
+                bombGraphics2D.fillOval(bomb.x, bomb.y, Constants.TILE_SIZE, Constants.TILE_SIZE);
+                enemyBombGraphics2DList.add(bombGraphics2D);
+            }
+        }
+
         playerGraphics2D.dispose();
         enemyGraphics2D.dispose();
+        mapGraphics2DList.forEach(Graphics::dispose);
         playerBombGraphics2DList.forEach(Graphics::dispose);
         enemyBombGraphics2DList.forEach(Graphics::dispose);
-        mapGraphics2DList.forEach(Graphics::dispose);
     }
 
     private void handleServerMessages() {
@@ -211,6 +216,10 @@ public class GamePanel extends JPanel implements Runnable {
                 handleBomb(message);
             } else if (action.equals(Constants.BOMB_EXPIRED)) {
                 handleBombExpired(message);
+            } else if (action.equals(Constants.EXPLOSION)) {
+                handleExplosion(message);
+            } else if (action.equals(Constants.EXPLODED)) {
+                handleExploded(message);
             }
         }
     }
@@ -244,6 +253,30 @@ public class GamePanel extends JPanel implements Runnable {
 
         player.bombList.remove(bomb);
         player.bombMap.remove(bombUUID);
+    }
+
+    private void handleExplosion(JSONObject jsonObject) {
+        UUID playerUUID = UUID.fromString(jsonObject.getString(Constants.PLAYER_UUID));
+        UUID explosionUUID = UUID.fromString(jsonObject.getString(Constants.EXPLOSION_UUID));
+        int explosionX = jsonObject.getInt(Constants.X);
+        int explosionY = jsonObject.getInt(Constants.Y);
+        Player player = playerMap.get(playerUUID);
+        Explosion explosion = new Explosion(explosionUUID, explosionX, explosionY);
+
+        player.bombList.add(explosion);
+        player.bombMap.put(explosionUUID, explosion);
+    }
+
+    private void handleExploded(JSONObject jsonObject) {
+        UUID explodedUUID = UUID.fromString(jsonObject.getString(Constants.EXPLODED_UUID));
+        List<Entity> explodedBoxes = new LinkedList<>();
+
+        for (Entity entity : gameMapEntities) {
+            if (entity instanceof Box && entity.uuid.equals(explodedUUID)) {
+                explodedBoxes.add(entity);
+            }
+        }
+        gameMapEntities.removeAll(explodedBoxes);
     }
 
     private void handleInput() {

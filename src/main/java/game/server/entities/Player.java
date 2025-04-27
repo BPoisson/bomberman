@@ -121,4 +121,9 @@ public class Player extends Entity {
         bombList.removeAll(expiredBombs);
         return expiredBombs;
     }
+
+    public void addExplosions(List<Explosion> explosions) {
+        bombList.addAll(explosions);
+        explosions.forEach(bomb -> bombMap.put(bomb.uuid, bomb));
+    }
 }

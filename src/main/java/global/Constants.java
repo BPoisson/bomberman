@@ -13,9 +13,11 @@ public class Constants {
     // Time constants.
     public static final int FRAME_RATE_SECONDS = 120;
     public static final long FRAME_TIME = 1_000_000_000;
+    public static final long HALF_SECOND_MILLIS = 500;
     public static final long ONE_SECOND_MILLIS = 1_000;
     public static final long ONE_MILLI_NANO = 1_000_000;
     public static final long ONE_SECOND_NANO = ONE_SECOND_MILLIS * ONE_MILLI_NANO;
+    public static final long HALF_SECOND_NANO = HALF_SECOND_MILLIS * ONE_MILLI_NANO;
     public static final long DRAW_INTERVAL = Constants.FRAME_TIME / FRAME_RATE_SECONDS;
     public static final long BOMB_COOLDOWN = Constants.ONE_SECOND_NANO * 2;
 
@@ -27,6 +29,7 @@ public class Constants {
 
     // Entity constants.
     public static final long BOMB_TIMER_NANO = ONE_SECOND_NANO * 4;
+    public static final int MAX_PROPAGATIONS = 4;
     public static final int BLOCK_TYPE = 1;
 
     // JSON constants.
@@ -36,6 +39,8 @@ public class Constants {
     public static final String BLOCK = "block";
     public static final String BOX = "box";
     public static final String BOMB = "bomb";
+    public static final String EXPLOSION = "explosion";
+    public static final String EXPLODED = "exploded";
     public static final String GAME_MAP = "gameMap";
 
     public static final String BOMB_PLACED = "bombPlaced";
@@ -46,6 +51,8 @@ public class Constants {
     public static final String UUID = "uuid";
     public static final String PLAYER_UUID = "playerUUID";
     public static final String BOMB_UUID = "bombUUID";
+    public static final String EXPLOSION_UUID = "explosionUUID";
+    public static final String EXPLODED_UUID = "explodedUUID";
 
     public static final String X = "x";
     public static final String Y = "y";

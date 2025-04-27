@@ -2,9 +2,7 @@ package game.server;
 
 import engine.Entity;
 import game.Direction;
-import game.server.entities.Bomb;
-import game.server.entities.GameMap;
-import game.server.entities.Player;
+import game.server.entities.*;
 import global.Constants;
 import global.Coordinate;
 import global.JSONCreator;
@@ -86,10 +84,7 @@ public class GameServer {
         Player player2 = players.get(1);
 
         sendMessage(gameMapJson.toString(), player1.address, player1.port);
-        System.out.println("Server sent game map to: " + player1.uuid);
-
         sendMessage(gameMapJson.toString(), player2.address, player2.port);
-        System.out.println("Server sent game map to: " + player2.uuid);
     }
 
     private void sendGameStart() {
@@ -163,13 +158,36 @@ public class GameServer {
     }
 
     private void expireBombs() {
+        List<Entity> exploded = new LinkedList<>();
+
         for (Player player : players) {
             List<Bomb> expiredBombs = player.expireBombs();
 
-            for (Bomb b : expiredBombs) {
+            for (Bomb bomb : expiredBombs) {
                 for (Player p : players) {
-                    sendMessage(JSONCreator.bombExpired(player.uuid, b.uuid).toString(), p.address, p.port);
+                    sendMessage(JSONCreator.bombExpired(player.uuid, bomb.uuid).toString(), p.address, p.port);
                 }
+                exploded.addAll(bomb.explode(getGameEntities()));
+            }
+
+            List<Explosion> explosions = new LinkedList<>();
+            for (Bomb b : expiredBombs) {
+                explosions.addAll(b.propagate(getGameEntities()));
+            }
+            for (Explosion explosion : explosions) {
+                for (Player p : players) {
+                    sendMessage(JSONCreator.explosion(player.uuid, explosion.uuid, explosion.x, explosion.y).toString(), p.address, p.port);
+                }
+            }
+            player.addExplosions(explosions);
+        }
+
+        for (Entity entity : exploded) {
+            if (entity instanceof Box) {
+                gameMap.mapEntities.remove(entity); // Remove exploded Boxes.
+            }
+            for (Player p : players) {
+                sendMessage(JSONCreator.exploded(entity.uuid).toString(), p.address, p.port);
             }
         }
     }
