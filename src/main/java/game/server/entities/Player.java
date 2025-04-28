@@ -9,6 +9,7 @@ import java.awt.*;
 import java.net.InetAddress;
 import java.util.*;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class Player extends Entity {
     private int speed;
@@ -125,5 +126,13 @@ public class Player extends Entity {
     public void addExplosions(List<Explosion> explosions) {
         bombList.addAll(explosions);
         explosions.forEach(bomb -> bombMap.put(bomb.uuid, bomb));
+    }
+
+    public List<Explosion> getExplosions() {
+        return bombList
+                .stream()
+                .filter(bomb -> bomb instanceof Explosion)
+                .map(bomb -> (Explosion) bomb)
+                .collect(Collectors.toList());
     }
 }

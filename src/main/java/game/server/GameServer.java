@@ -45,6 +45,7 @@ public class GameServer {
         while (true) {
             handleGameUpdates();
             expireBombs();
+            handleBombExplosions();
         }
     }
 
@@ -158,6 +159,7 @@ public class GameServer {
     }
 
     private void expireBombs() {
+        List<Entity> gameEntities = getGameEntities();
         List<Entity> exploded = new LinkedList<>();
 
         for (Player player : players) {
@@ -167,12 +169,14 @@ public class GameServer {
                 for (Player p : players) {
                     sendMessage(JSONCreator.bombExpired(player.uuid, bomb.uuid).toString(), p.address, p.port);
                 }
-                exploded.addAll(bomb.explode(getGameEntities()));
+                exploded.addAll(bomb.explode(gameEntities));
             }
 
             List<Explosion> explosions = new LinkedList<>();
             for (Bomb b : expiredBombs) {
-                explosions.addAll(b.propagate(getGameEntities()));
+                if (!(b instanceof Explosion)) {
+                    explosions.addAll(b.propagate(gameEntities));
+                }
             }
             for (Explosion explosion : explosions) {
                 for (Player p : players) {
@@ -189,6 +193,26 @@ public class GameServer {
             for (Player p : players) {
                 sendMessage(JSONCreator.exploded(entity.uuid).toString(), p.address, p.port);
             }
+        }
+    }
+
+    private void handleBombExplosions() {
+        List<Entity> gameEntities = getGameEntities();
+
+        for (Player player : players) {
+            List<Explosion> propagated = new LinkedList<>();
+            List<Explosion> explosions = player.getExplosions();
+
+            for (Explosion explosion : explosions) {
+                propagated.addAll(explosion.propagate(gameEntities));
+            }
+
+            for (Explosion explosion : propagated) {
+                for (Player p : players) {
+                    sendMessage(JSONCreator.explosion(player.uuid, explosion.uuid, explosion.x, explosion.y).toString(), p.address, p.port);
+                }
+            }
+            player.addExplosions(propagated);
         }
     }
 
