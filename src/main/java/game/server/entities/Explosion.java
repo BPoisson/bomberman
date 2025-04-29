@@ -11,8 +11,9 @@ import java.util.List;
 public class Explosion extends Bomb {
     private long propagateTimer;
     private boolean propagated;
+    public boolean isTouchingBlock;
 
-    public Explosion(int x, int y, int propagation, Direction direction) {
+    public Explosion(int x, int y, int propagation, boolean isTouchingBlock, Direction direction) {
         super(x, y);
         this.color = Color.ORANGE;
         this.timer = System.nanoTime() + Constants.HALF_SECOND_NANO;
@@ -20,10 +21,11 @@ public class Explosion extends Bomb {
         this.direction = direction;
         this.propagateTimer = System.nanoTime()  + Constants.QUARTER_SECOND_NANO;
         this.propagated = false;
+        this.isTouchingBlock = isTouchingBlock;
     }
 
     public List<Explosion> propagate(List<Entity> gameEntities) {
-        if (!propagated && propagateTimer <= System.nanoTime()) {
+        if (!isTouchingBlock && !propagated && propagateTimer <= System.nanoTime()) {
             propagated = true;
             return super.propagate(gameEntities);
         }
