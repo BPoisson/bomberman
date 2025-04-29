@@ -44,8 +44,8 @@ public class GameServer {
         serverSocketListener.startServerSocketListenerThread();
         while (true) {
             handleGameUpdates();
-            expireBombs();
-            handleBombExplosions();
+            Map<UUID, List<Bomb>> playerExplodedBombMap = expireBombs();
+            propagateExplosions(playerExplodedBombMap);
             handleExplosionCollisions();
         }
     }
@@ -159,42 +159,32 @@ public class GameServer {
         }
     }
 
-    private void expireBombs() {
-        List<Entity> gameEntities = getGameEntities();
-        List<Entity> exploded = new LinkedList<>();
+    private Map<UUID, List<Bomb>> expireBombs() {
+        Map<UUID, List<Bomb>> playerExplodedBombMap = new HashMap<>();
 
         for (Player player : players) {
             List<Bomb> expiredBombs = player.expireBombs();
+            playerExplodedBombMap.put(player.uuid, new LinkedList<>());
 
             for (Bomb bomb : expiredBombs) {
                 for (Player p : players) {
                     sendMessage(JSONCreator.bombExpired(player.uuid, bomb.uuid).toString(), p.address, p.port);
                 }
             }
-
-            List<Explosion> explosions = new LinkedList<>();
-            for (Bomb b : expiredBombs) {
-                if (!(b instanceof Explosion)) {
-                    explosions.addAll(b.propagate(gameEntities));
-                }
-            }
-            for (Explosion explosion : explosions) {
-                for (Player p : players) {
-                    sendMessage(JSONCreator.explosion(player.uuid, explosion.uuid, explosion.x, explosion.y).toString(), p.address, p.port);
-                }
-            }
-            player.addExplosions(explosions);
+            playerExplodedBombMap.get(player.uuid).addAll(expiredBombs);
         }
+        return playerExplodedBombMap;
     }
 
-    private void handleBombExplosions() {
+    private void propagateExplosions(Map<UUID, List<Bomb>> playerExplodedBombMap) {
         List<Entity> gameEntities = getGameEntities();
 
         for (Player player : players) {
             List<Explosion> propagated = new LinkedList<>();
-            List<Explosion> explosions = player.getExplosions();
+            List<Bomb> explosions = new LinkedList<>(playerExplodedBombMap.get(player.uuid));
+            explosions.addAll(player.getExplosions());
 
-            for (Explosion explosion : explosions) {
+            for (Bomb explosion : explosions) {
                 propagated.addAll(explosion.propagate(gameEntities));
             }
 
