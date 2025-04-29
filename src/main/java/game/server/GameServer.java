@@ -46,6 +46,7 @@ public class GameServer {
             handleGameUpdates();
             expireBombs();
             handleBombExplosions();
+            handleExplosionCollisions();
         }
     }
 
@@ -169,7 +170,6 @@ public class GameServer {
                 for (Player p : players) {
                     sendMessage(JSONCreator.bombExpired(player.uuid, bomb.uuid).toString(), p.address, p.port);
                 }
-                exploded.addAll(bomb.explode(gameEntities));
             }
 
             List<Explosion> explosions = new LinkedList<>();
@@ -184,15 +184,6 @@ public class GameServer {
                 }
             }
             player.addExplosions(explosions);
-        }
-
-        for (Entity entity : exploded) {
-            if (entity instanceof Box) {
-                gameMap.mapEntities.remove(entity); // Remove exploded Boxes.
-            }
-            for (Player p : players) {
-                sendMessage(JSONCreator.exploded(entity.uuid).toString(), p.address, p.port);
-            }
         }
     }
 
@@ -213,6 +204,31 @@ public class GameServer {
                 }
             }
             player.addExplosions(propagated);
+        }
+    }
+
+    private void handleExplosionCollisions() {
+        List<Entity> gameEntities = getGameEntities();
+        List<Entity> explodedEntities = new LinkedList<>();
+
+        for (Player player : players) {
+            List<Explosion> explosions = player.getExplosions();
+
+            for (Explosion explosion : explosions) {
+                explodedEntities.addAll(explosion.checkExplodeCollision(gameEntities));
+            }
+        }
+
+        for (Entity entity : explodedEntities) {
+            if (entity instanceof Box) {
+                gameMap.mapEntities.remove(entity); // Remove exploded Boxes.
+            } else if (entity instanceof Player) {
+                Player player = playerMap.get(entity.uuid);
+                player.decrementHealth();
+            }
+            for (Player p : players) {
+                sendMessage(JSONCreator.exploded(entity.uuid).toString(), p.address, p.port);
+            }
         }
     }
 

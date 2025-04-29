@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class Player extends Entity {
+    private int health;
     private int speed;
     private long bombCooldown;
     private Direction direction;
@@ -26,6 +27,7 @@ public class Player extends Entity {
         this.y = 100;
         this.bombCooldown = 0;
         this.color = Color.BLUE;
+        this.health = 3;
         this.speed = Constants.PLAYER_SPEED;
         this.direction = Direction.RIGHT;
         this.bombList = new LinkedList<>();
@@ -38,6 +40,7 @@ public class Player extends Entity {
         this.y = y;
         this.bombCooldown = 0;
         this.color = Color.BLUE;
+        this.health = 3;
         this.speed = Constants.PLAYER_SPEED;
         this.direction = Direction.RIGHT;
         this.bombList = new LinkedList<>();
@@ -134,5 +137,9 @@ public class Player extends Entity {
                 .filter(bomb -> bomb instanceof Explosion)
                 .map(bomb -> (Explosion) bomb)
                 .collect(Collectors.toList());
+    }
+
+    public void decrementHealth() {
+        health--;
     }
 }

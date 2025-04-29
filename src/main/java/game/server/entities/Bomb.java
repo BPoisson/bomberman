@@ -89,7 +89,7 @@ public class Bomb extends Entity {
         return false;
     }
 
-    public List<Entity> explode(List<Entity> gameEntities) {
+    public List<Entity> checkExplodeCollision(List<Entity> gameEntities) {
         List<Entity> exploded = new LinkedList<>();
 
         for (Entity entity : gameEntities) {
