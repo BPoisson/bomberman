@@ -7,6 +7,7 @@ import game.client.entities.Player;
 import game.client.entities.Block;
 import game.client.entities.Box;
 import game.client.entities.Explosion;
+import game.client.manager.BombManager;
 import global.Constants;
 import global.JSONCreator;
 import org.json.JSONArray;
@@ -26,6 +27,7 @@ public class GamePanel extends JPanel implements Runnable {
     Map<UUID, Player> playerMap;
     GameClient gameClient;
     List<Entity> gameMapEntities;
+    BombManager bombManager;
 
     public GamePanel() {
         keyHandler = new KeyHandler();
@@ -34,6 +36,7 @@ public class GamePanel extends JPanel implements Runnable {
         player = new Player();
         playerMap = new HashMap<>();
         playerMap.put(player.uuid, player);
+        bombManager = new BombManager();
 
         setPreferredSize(new Dimension(Constants.PANEL_WIDTH, Constants.PANEL_HEIGHT));
         setBackground(Color.WHITE);
@@ -153,44 +156,31 @@ public class GamePanel extends JPanel implements Runnable {
         }
 
         Graphics2D playerGraphics2D = (Graphics2D) graphics;
-        List<Graphics2D> playerBombGraphics2DList = new LinkedList<>();
-
         // Draw player.
         playerGraphics2D.setColor(player.color);
         playerGraphics2D.fillRect(player.x, player.y, Constants.TILE_SIZE, Constants.TILE_SIZE);
 
         // Draw enemy.
         Graphics2D enemyGraphics2D = (Graphics2D) graphics;
-        List<Graphics2D> enemyBombGraphics2DList = new LinkedList<>();
 
         if (enemy != null) {
             enemyGraphics2D.setColor(enemy.color);
             enemyGraphics2D.fillRect(enemy.x, enemy.y, Constants.TILE_SIZE, Constants.TILE_SIZE);
         }
 
+        List<Graphics2D> bombGraphics2DList = new LinkedList<>();
         // Draw player bombs.
-        for (Bomb bomb : player.bombList) {
+        for (Bomb bomb : bombManager.getBombs()) {
             Graphics2D bombGraphics2D = (Graphics2D) graphics;
             bombGraphics2D.setColor(bomb.color);
             bombGraphics2D.fillOval(bomb.x, bomb.y, Constants.TILE_SIZE, Constants.TILE_SIZE);
-            playerBombGraphics2DList.add(bombGraphics2D);
-        }
-
-        if (enemy != null) {
-            // Draw enemy bombs.
-            for (Bomb bomb : enemy.bombList) {
-                Graphics2D bombGraphics2D = (Graphics2D) graphics;
-                bombGraphics2D.setColor(bomb.color);
-                bombGraphics2D.fillOval(bomb.x, bomb.y, Constants.TILE_SIZE, Constants.TILE_SIZE);
-                enemyBombGraphics2DList.add(bombGraphics2D);
-            }
+            bombGraphics2DList.add(bombGraphics2D);
         }
 
         playerGraphics2D.dispose();
         enemyGraphics2D.dispose();
         mapGraphics2DList.forEach(Graphics::dispose);
-        playerBombGraphics2DList.forEach(Graphics::dispose);
-        enemyBombGraphics2DList.forEach(Graphics::dispose);
+        bombGraphics2DList.forEach(Graphics::dispose);
     }
 
     private void handleServerMessages() {
@@ -235,36 +225,27 @@ public class GamePanel extends JPanel implements Runnable {
     }
 
     private void handleBomb(JSONObject jsonObject) {
-        UUID playerUUID = UUID.fromString(jsonObject.getString(Constants.PLAYER_UUID));
         UUID bombUUID = UUID.fromString(jsonObject.getString(Constants.BOMB_UUID));
+        UUID playerUUID = UUID.fromString(jsonObject.getString(Constants.PLAYER_UUID));
         int bombX = jsonObject.getInt(Constants.X);
         int bombY = jsonObject.getInt(Constants.Y);
-        Bomb bomb = new Bomb(bombUUID, bombX, bombY);
-        Player player = playerMap.get(playerUUID);
-        player.bombList.add(bomb);
-        player.bombMap.put(bombUUID, bomb);
+        Bomb bomb = new Bomb(bombUUID, playerUUID, bombX, bombY);
+        bombManager.add(bomb);
     }
 
     private void handleBombExpired(JSONObject jsonObject) {
-        UUID playerUUID = UUID.fromString(jsonObject.getString(Constants.PLAYER_UUID));
         UUID bombUUID = UUID.fromString(jsonObject.getString(Constants.BOMB_UUID));
-        Player player = playerMap.get(playerUUID);
-        Bomb bomb = player.bombMap.get(bombUUID);
-
-        player.bombList.remove(bomb);
-        player.bombMap.remove(bombUUID);
+        bombManager.remove(bombUUID);
     }
 
     private void handleExplosion(JSONObject jsonObject) {
-        UUID playerUUID = UUID.fromString(jsonObject.getString(Constants.PLAYER_UUID));
+        System.out.println(jsonObject.toString());
         UUID explosionUUID = UUID.fromString(jsonObject.getString(Constants.EXPLOSION_UUID));
+        UUID playerUUID = UUID.fromString(jsonObject.getString(Constants.PLAYER_UUID));
         int explosionX = jsonObject.getInt(Constants.X);
         int explosionY = jsonObject.getInt(Constants.Y);
-        Player player = playerMap.get(playerUUID);
-        Explosion explosion = new Explosion(explosionUUID, explosionX, explosionY);
-
-        player.bombList.add(explosion);
-        player.bombMap.put(explosionUUID, explosion);
+        Explosion explosion = new Explosion(explosionUUID, playerUUID, explosionX, explosionY);
+        bombManager.add(explosion);
     }
 
     private void handleExploded(JSONObject jsonObject) {

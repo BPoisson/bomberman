@@ -12,12 +12,14 @@ import java.util.List;
 import java.util.UUID;
 
 public class Bomb extends Entity {
+    public UUID playerUUID;
     public long timer;
     public int propagation;
     public Direction direction;
 
-    public Bomb(int x, int y) {
+    public Bomb(UUID playerUUID, int x, int y) {
         this.uuid = UUID.randomUUID();
+        this.playerUUID = playerUUID;
         this.x = x;
         this.y = y;
         this.color = Color.BLACK;
@@ -41,7 +43,7 @@ public class Bomb extends Entity {
                 Coordinate explosionCoord = new Coordinate(x + dir[0], y + dir[1]);
                 boolean isTouchingBlock = checkBlockCollision(explosionCoord, gameEntities);
 
-                explosions.add(new Explosion(explosionCoord.x, explosionCoord.y, propagation + 1, isTouchingBlock, Direction.values()[i + 1]));
+                explosions.add(new Explosion(this.playerUUID, explosionCoord.x, explosionCoord.y, propagation + 1, isTouchingBlock, Direction.values()[i + 1]));
             }
         } else {
             switch (direction) {
@@ -49,25 +51,25 @@ public class Bomb extends Entity {
                     Coordinate explosionCoord = new Coordinate(x, y + Constants.TILE_SIZE);
                     boolean isTouchingBlock = checkBlockCollision(explosionCoord, gameEntities);
 
-                    explosions.add(new Explosion(explosionCoord.x, explosionCoord.y, propagation + 1, isTouchingBlock, direction));
+                    explosions.add(new Explosion(this.playerUUID, explosionCoord.x, explosionCoord.y, propagation + 1, isTouchingBlock, direction));
                 }
                 case Direction.DOWN -> {
                     Coordinate explosionCoord = new Coordinate(x, y - Constants.TILE_SIZE);
                     boolean isTouchingBlock = checkBlockCollision(explosionCoord, gameEntities);
 
-                    explosions.add(new Explosion(explosionCoord.x, explosionCoord.y, propagation + 1, isTouchingBlock, direction));
+                    explosions.add(new Explosion(this.playerUUID, explosionCoord.x, explosionCoord.y, propagation + 1, isTouchingBlock, direction));
                 }
                 case Direction.LEFT -> {
                     Coordinate explosionCoord = new Coordinate(x - Constants.TILE_SIZE, y);
                     boolean isTouchingBlock = checkBlockCollision(explosionCoord, gameEntities);
 
-                    explosions.add(new Explosion(explosionCoord.x, explosionCoord.y, propagation + 1, isTouchingBlock, direction));
+                    explosions.add(new Explosion(this.playerUUID, explosionCoord.x, explosionCoord.y, propagation + 1, isTouchingBlock, direction));
                 }
                 case Direction.RIGHT -> {
                     Coordinate explosionCoord = new Coordinate(x + Constants.TILE_SIZE, y);
                     boolean isTouchingBlock = checkBlockCollision(explosionCoord, gameEntities);
 
-                    explosions.add(new Explosion(explosionCoord.x, explosionCoord.y, propagation + 1, isTouchingBlock, direction));
+                    explosions.add(new Explosion(this.playerUUID, explosionCoord.x, explosionCoord.y, propagation + 1, isTouchingBlock, direction));
                 }
             }
         }

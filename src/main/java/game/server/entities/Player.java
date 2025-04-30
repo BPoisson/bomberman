@@ -7,17 +7,13 @@ import global.Coordinate;
 
 import java.awt.*;
 import java.net.InetAddress;
-import java.util.*;
-import java.util.List;
-import java.util.stream.Collectors;
+import java.util.UUID;
 
 public class Player extends Entity {
     private int health;
     private int speed;
     private long bombCooldown;
     private Direction direction;
-    private List<Bomb> bombList;
-    private Map<UUID, Bomb> bombMap;
     public InetAddress address;
     public int port;
 
@@ -30,8 +26,6 @@ public class Player extends Entity {
         this.health = 3;
         this.speed = Constants.PLAYER_SPEED;
         this.direction = Direction.RIGHT;
-        this.bombList = new LinkedList<>();
-        this.bombMap = new HashMap<>();
     }
 
     public Player(UUID uuid, int x, int y, InetAddress address, int port) {
@@ -43,8 +37,6 @@ public class Player extends Entity {
         this.health = 3;
         this.speed = Constants.PLAYER_SPEED;
         this.direction = Direction.RIGHT;
-        this.bombList = new LinkedList<>();
-        this.bombMap = new HashMap<>();
         this.address = address;
         this.port = port;
     }
@@ -101,42 +93,10 @@ public class Player extends Entity {
         if (System.nanoTime() < bombCooldown) {
             return null;
         }
-
-        Bomb bomb = new Bomb(x, y);
-        bombList.add(bomb);
-        bombMap.put(bomb.uuid, bomb);
+        Bomb bomb = new Bomb(uuid, x, y);
         bombCooldown = System.nanoTime() + Constants.BOMB_COOLDOWN;
 
         return bomb;
-    }
-
-    public List<Bomb> expireBombs() {
-        List<Bomb> expiredBombs = new LinkedList<>();
-        if (bombList.isEmpty()) {
-            return expiredBombs;
-        }
-
-        for (Bomb bomb : bombList) {
-            if (bomb.isExpired()) {
-                expiredBombs.add(bomb);
-                bombMap.remove(bomb.uuid);
-            }
-        }
-        bombList.removeAll(expiredBombs);
-        return expiredBombs;
-    }
-
-    public void addExplosions(List<Explosion> explosions) {
-        bombList.addAll(explosions);
-        explosions.forEach(bomb -> bombMap.put(bomb.uuid, bomb));
-    }
-
-    public List<Explosion> getExplosions() {
-        return bombList
-                .stream()
-                .filter(bomb -> bomb instanceof Explosion)
-                .map(bomb -> (Explosion) bomb)
-                .collect(Collectors.toList());
     }
 
     public void decrementHealth() {

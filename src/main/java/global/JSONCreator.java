@@ -100,20 +100,19 @@ public class JSONCreator {
         return jsonObj;
     }
 
-    public static JSONObject bombExpired(UUID playerUUID, UUID bombUUID) {
+    public static JSONObject bombExpired(UUID bombUUID) {
         JSONObject jsonObj = new JSONObject();
         jsonObj.put(Constants.ACTION, Constants.BOMB_EXPIRED);
-        jsonObj.put(Constants.PLAYER_UUID, playerUUID);
         jsonObj.put(Constants.BOMB_UUID, bombUUID);
 
         return jsonObj;
     }
 
-    public static JSONObject explosion(UUID uuid, UUID explosionUUID, int x, int y) {
+    public static JSONObject explosion(UUID explosionUUID, UUID playerUUID, int x, int y) {
         JSONObject jsonObj = new JSONObject();
         jsonObj.put(Constants.ACTION, Constants.EXPLOSION);
-        jsonObj.put(Constants.PLAYER_UUID, uuid);
         jsonObj.put(Constants.EXPLOSION_UUID, explosionUUID);
+        jsonObj.put(Constants.PLAYER_UUID, playerUUID);
         jsonObj.put(Constants.X, x);
         jsonObj.put(Constants.Y, y);
 

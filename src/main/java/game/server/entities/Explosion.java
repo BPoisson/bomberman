@@ -7,14 +7,15 @@ import global.Constants;
 import java.awt.*;
 import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 
 public class Explosion extends Bomb {
     private long propagateTimer;
     private boolean propagated;
     public boolean isTouchingBlock;
 
-    public Explosion(int x, int y, int propagation, boolean isTouchingBlock, Direction direction) {
-        super(x, y);
+    public Explosion(UUID playerUUID, int x, int y, int propagation, boolean isTouchingBlock, Direction direction) {
+        super(playerUUID, x, y);
         this.color = Color.ORANGE;
         this.timer = System.nanoTime() + Constants.HALF_SECOND_NANO;
         this.propagation = propagation;

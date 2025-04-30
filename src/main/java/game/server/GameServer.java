@@ -3,6 +3,7 @@ package game.server;
 import engine.Entity;
 import game.Direction;
 import game.server.entities.*;
+import game.server.manager.BombManager;
 import global.Constants;
 import global.Coordinate;
 import global.JSONCreator;
@@ -19,6 +20,7 @@ public class GameServer {
     private GameMap gameMap;
     private List<Player> players;
     private Map<UUID, Player> playerMap;
+    private BombManager bombManager;
     private byte[] buffer;
     private DatagramSocket socket;
     private ServerSocketListener serverSocketListener;
@@ -27,6 +29,7 @@ public class GameServer {
         this.gameMap = new GameMap();
         this.players = new LinkedList<>();
         this.playerMap = new HashMap<>();
+        this.bombManager = new BombManager();
         this.buffer = new byte[256];
         try {
             this.socket = new DatagramSocket(4445);
@@ -44,8 +47,8 @@ public class GameServer {
         serverSocketListener.startServerSocketListenerThread();
         while (true) {
             handleGameUpdates();
-            Map<UUID, List<Bomb>> playerExplodedBombMap = expireBombs();
-            propagateExplosions(playerExplodedBombMap);
+            List<Bomb> expiredBombs = expireBombs();
+            propagateExplosions(expiredBombs);
             handleExplosionCollisions();
         }
     }
@@ -153,61 +156,35 @@ public class GameServer {
         if (bomb == null) {
             sendMessage(JSONCreator.bombNotPlaced().toString(), player.address, player.port);
         } else {
+            bombManager.add(bomb);
             for (Player p : players) {
                 sendMessage(JSONCreator.bombPlaced(player.uuid, bomb.uuid, bomb.x, bomb.y).toString(), p.address, p.port);
             }
         }
     }
 
-    private Map<UUID, List<Bomb>> expireBombs() {
-        Map<UUID, List<Bomb>> playerExplodedBombMap = new HashMap<>();
-
-        for (Player player : players) {
-            List<Bomb> expiredBombs = player.expireBombs();
-            playerExplodedBombMap.put(player.uuid, new LinkedList<>());
-
-            for (Bomb bomb : expiredBombs) {
-                for (Player p : players) {
-                    sendMessage(JSONCreator.bombExpired(player.uuid, bomb.uuid).toString(), p.address, p.port);
-                }
+    private List<Bomb> expireBombs() {
+        List<Bomb> expiredBombs = bombManager.expireBombs();
+        for (Bomb bomb : expiredBombs) {
+            for (Player p : players) {
+                sendMessage(JSONCreator.bombExpired(bomb.uuid).toString(), p.address, p.port);
             }
-            playerExplodedBombMap.get(player.uuid).addAll(expiredBombs);
         }
-        return playerExplodedBombMap;
+        return expiredBombs;
     }
 
-    private void propagateExplosions(Map<UUID, List<Bomb>> playerExplodedBombMap) {
-        List<Entity> gameEntities = getGameEntities();
+    private void propagateExplosions(List<Bomb> expiredBombs) {
+        List<Bomb> explosions = bombManager.propagateExplosions(expiredBombs, getGameEntities());
 
-        for (Player player : players) {
-            List<Explosion> propagated = new LinkedList<>();
-            List<Bomb> explosions = new LinkedList<>(playerExplodedBombMap.get(player.uuid));
-            explosions.addAll(player.getExplosions());
-
-            for (Bomb explosion : explosions) {
-                propagated.addAll(explosion.propagate(gameEntities));
+        for (Bomb explosion : explosions) {
+            for (Player p : players) {
+                sendMessage(JSONCreator.explosion(explosion.uuid, explosion.playerUUID, explosion.x, explosion.y).toString(), p.address, p.port);
             }
-
-            for (Explosion explosion : propagated) {
-                for (Player p : players) {
-                    sendMessage(JSONCreator.explosion(player.uuid, explosion.uuid, explosion.x, explosion.y).toString(), p.address, p.port);
-                }
-            }
-            player.addExplosions(propagated);
         }
     }
 
     private void handleExplosionCollisions() {
-        List<Entity> gameEntities = getGameEntities();
-        List<Entity> explodedEntities = new LinkedList<>();
-
-        for (Player player : players) {
-            List<Explosion> explosions = player.getExplosions();
-
-            for (Explosion explosion : explosions) {
-                explodedEntities.addAll(explosion.checkExplodeCollision(gameEntities));
-            }
-        }
+        List<Entity> explodedEntities = bombManager.handleExplosionCollisions(getGameEntities());
 
         for (Entity entity : explodedEntities) {
             if (entity instanceof Box) {
@@ -225,6 +202,7 @@ public class GameServer {
     public void sendMessage(String message, InetAddress address, int port) {
         byte[] buffer = message.getBytes();
         DatagramPacket packet = new DatagramPacket(buffer, buffer.length, address, port);
+//        System.err.println("Server sending: " + message);
         try {
             socket.send(packet);
         } catch (IOException e) {

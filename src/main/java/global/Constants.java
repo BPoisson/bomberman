@@ -31,7 +31,7 @@ public class Constants {
 
     // Entity constants.
     public static final long BOMB_TIMER_NANO = ONE_SECOND_NANO * 4;
-    public static final int MAX_PROPAGATIONS = 4;
+    public static final int MAX_PROPAGATIONS = 5;
     public static final int BLOCK_TYPE = 1;
 
     // JSON constants.
