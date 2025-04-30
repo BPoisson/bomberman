@@ -156,14 +156,15 @@ public class GamePanel extends JPanel implements Runnable {
         }
 
         Graphics2D playerGraphics2D = (Graphics2D) graphics;
-        // Draw player.
-        playerGraphics2D.setColor(player.color);
-        playerGraphics2D.fillRect(player.x, player.y, Constants.TILE_SIZE, Constants.TILE_SIZE);
+        // Draw player. Flicker if immune.
+        if (!player.isImmune() || new Random().nextBoolean()) {
+            playerGraphics2D.setColor(player.color);
+            playerGraphics2D.fillRect(player.x, player.y, Constants.TILE_SIZE, Constants.TILE_SIZE);
+        }
 
-        // Draw enemy.
         Graphics2D enemyGraphics2D = (Graphics2D) graphics;
-
-        if (enemy != null) {
+        // Draw enemy. Flicker if immune.
+        if (enemy != null && (!enemy.isImmune() || new Random().nextBoolean())) {
             enemyGraphics2D.setColor(enemy.color);
             enemyGraphics2D.fillRect(enemy.x, enemy.y, Constants.TILE_SIZE, Constants.TILE_SIZE);
         }
@@ -197,19 +198,21 @@ public class GamePanel extends JPanel implements Runnable {
                 continue;
             }
 
-            if (action.equals(Constants.MOVE)) {
-                handleMovement(message);
-            } else if (action.equals(Constants.BOMB)) {
-                if (!message.getBoolean(Constants.BOMB_PLACED)) {
-                    continue;
+            switch (action) {
+                case Constants.MOVE -> handleMovement(message);
+                case Constants.BOMB -> {
+                    if (!message.getBoolean(Constants.BOMB_PLACED)) {
+                        continue;
+                    }
+                    handleBomb(message);
                 }
-                handleBomb(message);
-            } else if (action.equals(Constants.BOMB_EXPIRED)) {
-                handleBombExpired(message);
-            } else if (action.equals(Constants.EXPLOSION)) {
-                handleExplosion(message);
-            } else if (action.equals(Constants.EXPLODED)) {
-                handleExploded(message);
+                case Constants.BOMB_EXPIRED -> handleBombExpired(message);
+                case Constants.EXPLOSION -> handleExplosion(message);
+                case Constants.EXPLODED -> handleExploded(message);
+                case Constants.PLAYER_HIT -> handlePlayerHit(message);
+                case Constants.IMMUNITY_DISABLED -> handleImmunityDisabled(message);
+                case Constants.PLAYER_LOST -> handlePlayerLost(message);
+                default -> System.err.println("Unhandled message: " + message);
             }
         }
     }
@@ -239,7 +242,6 @@ public class GamePanel extends JPanel implements Runnable {
     }
 
     private void handleExplosion(JSONObject jsonObject) {
-        System.out.println(jsonObject.toString());
         UUID explosionUUID = UUID.fromString(jsonObject.getString(Constants.EXPLOSION_UUID));
         UUID playerUUID = UUID.fromString(jsonObject.getString(Constants.PLAYER_UUID));
         int explosionX = jsonObject.getInt(Constants.X);
@@ -258,6 +260,32 @@ public class GamePanel extends JPanel implements Runnable {
             }
         }
         gameMapEntities.removeAll(explodedBoxes);
+    }
+
+    private void handlePlayerHit(JSONObject jsonObject) {
+        UUID playerUUID = UUID.fromString(jsonObject.getString(Constants.PLAYER_UUID));
+        playerMap.get(playerUUID).handleHit();
+
+        if (player.uuid.equals(playerUUID)) {
+            System.err.println("Player hit.");
+        } else {
+            System.err.println("Enemy hit.");
+        }
+    }
+
+    private void handleImmunityDisabled(JSONObject jsonObject) {
+        UUID playerUUID = UUID.fromString(jsonObject.getString(Constants.PLAYER_UUID));
+        playerMap.get(playerUUID).disableImmunity();
+    }
+
+    private void handlePlayerLost(JSONObject jsonObject) {
+        UUID playerUUID = UUID.fromString(jsonObject.getString(Constants.PLAYER_UUID));
+
+        if (player.uuid.equals(playerUUID)) {
+            System.err.println("Player lost.");
+        } else {
+            System.err.println("Enemy lost.");
+        }
     }
 
     private void handleInput() {

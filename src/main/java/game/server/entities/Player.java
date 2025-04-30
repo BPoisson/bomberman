@@ -11,22 +11,14 @@ import java.util.UUID;
 
 public class Player extends Entity {
     private int health;
-    private int speed;
+    public boolean isImmune;
+    private final int speed;
     private long bombCooldown;
+    private long immuneCooldown;
     private Direction direction;
     public InetAddress address;
     public int port;
-
-    public Player() {
-        this.uuid = UUID.randomUUID();
-        this.x = 100;
-        this.y = 100;
-        this.bombCooldown = 0;
-        this.color = Color.BLUE;
-        this.health = 3;
-        this.speed = Constants.PLAYER_SPEED;
-        this.direction = Direction.RIGHT;
-    }
+    private final long IMMUNE_COOLDOWN = Constants.ONE_SECOND_NANO * 2;
 
     public Player(UUID uuid, int x, int y, InetAddress address, int port) {
         this.uuid = uuid;
@@ -99,7 +91,31 @@ public class Player extends Entity {
         return bomb;
     }
 
+    private void setImmune() {
+        isImmune = true;
+        immuneCooldown = System.nanoTime() + IMMUNE_COOLDOWN;
+    }
+
+    public boolean checkDisableImmunity() {
+        if (isImmune && immuneCooldown <= System.nanoTime()) {
+            isImmune = false;
+            return true;
+        }
+        return false;
+    }
+
     public void decrementHealth() {
         health--;
+    }
+
+    public void handleHit() {
+        if (!isImmune) {
+            setImmune();
+            decrementHealth();
+        }
+    }
+
+    public int getHealth() {
+        return health;
     }
 }

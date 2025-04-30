@@ -127,6 +127,30 @@ public class JSONCreator {
         return jsonObj;
     }
 
+    public static JSONObject playerLost(UUID uuid) {
+        JSONObject jsonObj = new JSONObject();
+        jsonObj.put(Constants.ACTION, Constants.PLAYER_LOST);
+        jsonObj.put(Constants.PLAYER_UUID, uuid);
+
+        return jsonObj;
+    }
+
+    public static JSONObject playerImmunityDisabled(UUID uuid) {
+        JSONObject jsonObj = new JSONObject();
+        jsonObj.put(Constants.ACTION, Constants.IMMUNITY_DISABLED);
+        jsonObj.put(Constants.PLAYER_UUID, uuid);
+
+        return jsonObj;
+    }
+
+    public static JSONObject playerHit(UUID uuid) {
+        JSONObject jsonObj = new JSONObject();
+        jsonObj.put(Constants.ACTION, Constants.PLAYER_HIT);
+        jsonObj.put(Constants.PLAYER_UUID, uuid);
+
+        return jsonObj;
+    }
+
     public static JSONObject registerPlayer(UUID uuid) {
         JSONObject jsonObj = new JSONObject();
         jsonObj.put(Constants.PLAYER_UUID, uuid);

@@ -49,6 +49,9 @@ public class Constants {
     public static final String BOMB_EXPIRED = "bombExpired";
     public static final String DIRECTION = "direction";
     public static final String MOVE = "move";
+    public static final String PLAYER_LOST = "playerLost";
+    public static final String IMMUNITY_DISABLED = "immunityDisabled";
+    public static final String PLAYER_HIT = "playerHit";
 
     public static final String UUID = "uuid";
     public static final String PLAYER_UUID = "playerUUID";

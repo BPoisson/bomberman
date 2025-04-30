@@ -17,13 +17,13 @@ import java.net.SocketException;
 import java.util.*;
 
 public class GameServer {
-    private GameMap gameMap;
-    private List<Player> players;
-    private Map<UUID, Player> playerMap;
-    private BombManager bombManager;
-    private byte[] buffer;
-    private DatagramSocket socket;
-    private ServerSocketListener serverSocketListener;
+    private final GameMap gameMap;
+    private final List<Player> players;
+    private final Map<UUID, Player> playerMap;
+    private final BombManager bombManager;
+    private final byte[] buffer;
+    private final DatagramSocket socket;
+    private final ServerSocketListener serverSocketListener;
 
     public GameServer() {
         this.gameMap = new GameMap();
@@ -47,9 +47,14 @@ public class GameServer {
         serverSocketListener.startServerSocketListenerThread();
         while (true) {
             handleGameUpdates();
+            handlePlayerImmunity();
             List<Bomb> expiredBombs = expireBombs();
             propagateExplosions(expiredBombs);
             handleExplosionCollisions();
+
+            if (checkWinCondition() > 0) {
+                System.err.println("Game over.");
+            }
         }
     }
 
@@ -136,6 +141,25 @@ public class GameServer {
         }
     }
 
+    private void handlePlayerImmunity() {
+        List<UUID> playerImmunityOver = new LinkedList<>();
+
+        // Set player immunity off if time's-up.
+        for (Player player : players) {
+            boolean immuneDisabled = player.checkDisableImmunity();
+
+            if (immuneDisabled) {
+                playerImmunityOver.add(player.uuid);
+            }
+        }
+
+        for (UUID playerUUID : playerImmunityOver) {
+            for (Player p : players) {
+                sendMessage(JSONCreator.playerImmunityDisabled(playerUUID).toString(), p.address, p.port);
+            }
+        }
+    }
+
     private void handleMovement(Player player, Direction direction) {
         Coordinate playerNextCoord = player.getNextPosition(direction);
         List<Entity> gameEntities = getGameEntities();
@@ -187,16 +211,48 @@ public class GameServer {
         List<Entity> explodedEntities = bombManager.handleExplosionCollisions(getGameEntities());
 
         for (Entity entity : explodedEntities) {
-            if (entity instanceof Box) {
-                gameMap.mapEntities.remove(entity); // Remove exploded Boxes.
-            } else if (entity instanceof Player) {
-                Player player = playerMap.get(entity.uuid);
-                player.decrementHealth();
+            if (entity instanceof Box box) {
+                handleBoxExplosion(box);
+            } else if (entity instanceof Player playerHit) {
+                handlePlayerExplosion(playerHit);
             }
+
+        }
+    }
+
+    private void handleBoxExplosion(Box box) {
+        gameMap.mapEntities.remove(box); // Remove exploded Boxes.
+
+        for (Player p : players) {
+            sendMessage(JSONCreator.exploded(box.uuid).toString(), p.address, p.port);
+        }
+    }
+
+    private void handlePlayerExplosion(Player player) {
+        if (!player.isImmune) {
+            player.handleHit();
+
             for (Player p : players) {
-                sendMessage(JSONCreator.exploded(entity.uuid).toString(), p.address, p.port);
+                sendMessage(JSONCreator.playerHit(player.uuid).toString(), p.address, p.port);
             }
         }
+    }
+
+    private int checkWinCondition() {
+        List<UUID> losingPlayerUUIDs = new LinkedList<>();
+
+        for (Player player : players) {
+            if (player.getHealth() <= 0) {
+                losingPlayerUUIDs.add(player.uuid);
+            }
+        }
+
+        for (UUID losingPlayerUUID : losingPlayerUUIDs) {
+            for (Player p : players) {
+                sendMessage(JSONCreator.playerLost(losingPlayerUUID).toString(), p.address, p.port);
+            }
+        }
+        return losingPlayerUUIDs.size();
     }
 
     public void sendMessage(String message, InetAddress address, int port) {
