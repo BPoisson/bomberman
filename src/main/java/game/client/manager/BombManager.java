@@ -18,13 +18,20 @@ public class BombManager {
         bombMap.put(bomb.uuid, bomb);
     }
 
-    public void remove(UUID bombUUID) {
-        if (!bombMap.containsKey(bombUUID)) {
-            System.err.println("Unable to find bomb: " + bombUUID);
+    public void remove(UUID uuid) {
+        if (!bombMap.containsKey(uuid)) {
+            System.err.println("Unable to find bomb: " + uuid);
         }
-        Bomb bomb = bombMap.get(bombUUID);
+        Bomb bomb = bombMap.get(uuid);
         bombList.remove(bomb);
-        bombMap.remove(bombUUID);
+        bombMap.remove(uuid);
+    }
+
+    public Bomb get(UUID uuid) {
+        if (!bombMap.containsKey(uuid)) {
+            System.err.println("Unable to find bomb: " + uuid);
+        }
+        return bombMap.get(uuid);
     }
 
     public List<Bomb> getBombs() {

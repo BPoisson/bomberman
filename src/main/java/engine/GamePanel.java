@@ -234,11 +234,19 @@ public class GamePanel extends JPanel implements Runnable {
         int bombY = jsonObject.getInt(Constants.Y);
         Bomb bomb = new Bomb(bombUUID, playerUUID, bombX, bombY);
         bombManager.add(bomb);
+
+        AudioPlayer.playBombPlaced();
+        AudioPlayer.playBombFuse();
     }
 
     private void handleBombExpired(JSONObject jsonObject) {
         UUID bombUUID = UUID.fromString(jsonObject.getString(Constants.BOMB_UUID));
+        Bomb bomb = bombManager.get(bombUUID);
         bombManager.remove(bombUUID);
+
+        if (!(bomb instanceof Explosion)) {
+            AudioPlayer.playExplosion();
+        }
     }
 
     private void handleExplosion(JSONObject jsonObject) {
