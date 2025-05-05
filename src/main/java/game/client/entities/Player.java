@@ -39,4 +39,8 @@ public class Player extends Entity {
     public boolean isImmune() {
         return isImmune;
     }
+
+    public int getHealth() {
+        return health;
+    }
 }

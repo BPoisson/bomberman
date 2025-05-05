@@ -178,10 +178,34 @@ public class GamePanel extends JPanel implements Runnable {
             bombGraphics2DList.add(bombGraphics2D);
         }
 
+        // Player health graphics.
+        List<Graphics2D> playerHealthGraphics2DList =
+                getHealthGraphics2DList(player, graphics, Constants.PLAYER_HEALTH_X);
+
+        // Enemy health graphics.
+        List<Graphics2D> enemyHealthGraphics2DList =
+                getHealthGraphics2DList(enemy, graphics, Constants.ENEMY_HEALTH_X);
+
         playerGraphics2D.dispose();
         enemyGraphics2D.dispose();
         mapGraphics2DList.forEach(Graphics::dispose);
         bombGraphics2DList.forEach(Graphics::dispose);
+        playerHealthGraphics2DList.forEach(Graphics::dispose);
+        enemyHealthGraphics2DList.forEach(Graphics::dispose);
+    }
+
+    private List<Graphics2D> getHealthGraphics2DList(Player player, Graphics graphics, int startX) {
+        List<Graphics2D> healthGraphics2DList = new LinkedList<>();
+
+        if (player != null) {
+            for (int i = 0; i < player.getHealth(); i++) {
+                Graphics2D healthGraphics2D = (Graphics2D) graphics;
+                healthGraphics2D.setColor(player.color);
+                healthGraphics2D.fillRect(startX + (Constants.TILE_SIZE * i), Constants.HEALTH_Y, Constants.BLOCK_SIZE, Constants.BLOCK_SIZE);
+                healthGraphics2DList.add(healthGraphics2D);
+            }
+        }
+        return healthGraphics2DList;
     }
 
     private void handleServerMessages() {

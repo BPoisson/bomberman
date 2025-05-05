@@ -28,11 +28,14 @@ public class Constants {
     public static final int PLAYER_1_X = BLOCK_SIZE * BLOCK_SCALE * 2;
     public static final int PLAYER_2_X = PANEL_WIDTH - (BLOCK_SIZE * BLOCK_SCALE * 3);
     public static final int PLAYER_Y = PANEL_HEIGHT / 2;
+    public static final int PLAYER_HEALTH_X = TILE_SIZE;
+    public static final int HEALTH_Y = BLOCK_SIZE / 2;
 
     // Entity constants.
     public static final long BOMB_TIMER_NANO = ONE_SECOND_NANO * 4;
     public static final int MAX_PROPAGATIONS = 5;
     public static final int BLOCK_TYPE = 1;
+    public static final int ENEMY_HEALTH_X = PANEL_WIDTH - (BLOCK_SIZE * 7);
 
     // JSON constants.
     public static final String ENTITY = "entity";
