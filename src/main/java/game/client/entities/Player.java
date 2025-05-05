@@ -1,12 +1,14 @@
 package game.client.entities;
 
 import engine.Entity;
+import global.Constants;
 
 import java.awt.*;
 import java.util.UUID;
 
 public class Player extends Entity {
     private int health;
+    private long bombCooldown;
     private boolean isImmune;
 
     public Player() {
@@ -15,6 +17,7 @@ public class Player extends Entity {
         this.y = -100;
         this.color = Color.getHSBColor(210 / 360f, 1.0f, 0.8f);
         this.health = 3;
+        this.bombCooldown = 0;
         this.isImmune = false;
     }
 
@@ -32,15 +35,23 @@ public class Player extends Entity {
         isImmune = true;
     }
 
-    public void disableImmunity() {
-        isImmune = false;
+    public int getHealth() {
+        return health;
+    }
+
+    public boolean isBombOnCooldown() {
+        return System.nanoTime() < this.bombCooldown;
+    }
+
+    public void setBombCooldown() {
+        this.bombCooldown = System.nanoTime() + Constants.BOMB_COOLDOWN;
     }
 
     public boolean isImmune() {
         return isImmune;
     }
 
-    public int getHealth() {
-        return health;
+    public void disableImmunity() {
+        isImmune = false;
     }
 }

@@ -178,18 +178,25 @@ public class GamePanel extends JPanel implements Runnable {
             bombGraphics2DList.add(bombGraphics2D);
         }
 
-        // Player health graphics.
-        List<Graphics2D> playerHealthGraphics2DList =
-                getHealthGraphics2DList(player, graphics, Constants.PLAYER_HEALTH_X);
+        // Player bomb cooldown.
+        Graphics2D bombCooldownGraphics2D = (Graphics2D) graphics;
+        Color bombCooldownColor = player.isBombOnCooldown() ? Constants.COLOR_GRAY_TRANSPARENT : Color.BLACK;
+        bombCooldownGraphics2D.setColor(bombCooldownColor);
+        bombCooldownGraphics2D.fillOval(Constants.PLAYER_UI_X + (Constants.TILE_SIZE * 3), Constants.UI_Y, Constants.BLOCK_SIZE, Constants.BLOCK_SIZE);
 
-        // Enemy health graphics.
+        // Player health.
+        List<Graphics2D> playerHealthGraphics2DList =
+                getHealthGraphics2DList(player, graphics, Constants.PLAYER_UI_X);
+
+        // Enemy health.
         List<Graphics2D> enemyHealthGraphics2DList =
-                getHealthGraphics2DList(enemy, graphics, Constants.ENEMY_HEALTH_X);
+                getHealthGraphics2DList(enemy, graphics, Constants.ENEMY_UI_X);
 
         playerGraphics2D.dispose();
         enemyGraphics2D.dispose();
         mapGraphics2DList.forEach(Graphics::dispose);
         bombGraphics2DList.forEach(Graphics::dispose);
+        bombCooldownGraphics2D.dispose();
         playerHealthGraphics2DList.forEach(Graphics::dispose);
         enemyHealthGraphics2DList.forEach(Graphics::dispose);
     }
@@ -201,7 +208,7 @@ public class GamePanel extends JPanel implements Runnable {
             for (int i = 0; i < player.getHealth(); i++) {
                 Graphics2D healthGraphics2D = (Graphics2D) graphics;
                 healthGraphics2D.setColor(player.color);
-                healthGraphics2D.fillRect(startX + (Constants.TILE_SIZE * i), Constants.HEALTH_Y, Constants.BLOCK_SIZE, Constants.BLOCK_SIZE);
+                healthGraphics2D.fillRect(startX + (Constants.TILE_SIZE * i), Constants.UI_Y, Constants.BLOCK_SIZE, Constants.BLOCK_SIZE);
                 healthGraphics2DList.add(healthGraphics2D);
             }
         }
@@ -254,6 +261,12 @@ public class GamePanel extends JPanel implements Runnable {
     private void handleBomb(JSONObject jsonObject) {
         UUID bombUUID = UUID.fromString(jsonObject.getString(Constants.BOMB_UUID));
         UUID playerUUID = UUID.fromString(jsonObject.getString(Constants.PLAYER_UUID));
+        if (playerUUID.equals(player.uuid)) {
+            // Setting on client since nanoTime cannot be used across JVMs.
+            // May be very slightly delayed on client compared to server.
+            // Worst case, the player can place a bomb just before the client indicates that they can. Not a big deal.
+            player.setBombCooldown();
+        }
         int bombX = jsonObject.getInt(Constants.X);
         int bombY = jsonObject.getInt(Constants.Y);
         Bomb bomb = new Bomb(bombUUID, playerUUID, bombX, bombY);
