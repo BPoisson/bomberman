@@ -11,6 +11,6 @@ public class HealthPickup extends Entity {
         this.uuid = uuid;
         this.x = x;
         this.y = y;
-        this.color = Color.GREEN;
+        this.color = Color.getHSBColor(120 / 360f, 1.0f, 0.8f);
     }
 }

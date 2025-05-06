@@ -54,8 +54,4 @@ public class GameMap {
         }
         return mapEntities;
     }
-
-    private String getKey(int row, int col) {
-        return row + "," + col;
-    }
 }

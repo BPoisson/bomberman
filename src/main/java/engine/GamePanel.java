@@ -147,7 +147,14 @@ public class GamePanel extends JPanel implements Runnable {
             for (Entity mapEntity : gameMapEntities) {
                 Graphics2D mapGraphics2D = (Graphics2D) graphics;
                 mapGraphics2D.setColor(mapEntity.color);
-                mapGraphics2D.fillRect(mapEntity.x, mapEntity.y, Constants.TILE_SIZE, Constants.TILE_SIZE);
+
+                if (mapEntity instanceof HealthPickup) {
+                    // Make a cross shape for the health pickup.
+                    mapGraphics2D.fillRect(mapEntity.x + Constants.BLOCK_SIZE / 2, mapEntity.y, Constants.TILE_SIZE / 2, Constants.TILE_SIZE);
+                    mapGraphics2D.fillRect(mapEntity.x, mapEntity.y + Constants.BLOCK_SIZE / 2, Constants.TILE_SIZE, Constants.TILE_SIZE / 2);
+                } else  {
+                    mapGraphics2D.fillRect(mapEntity.x, mapEntity.y, Constants.TILE_SIZE, Constants.TILE_SIZE);
+                }
                 mapGraphics2DList.add(mapGraphics2D);
             }
         }
