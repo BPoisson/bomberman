@@ -119,10 +119,23 @@ public class JSONCreator {
         return jsonObj;
     }
 
-    public static JSONObject exploded(UUID explodedUUID) {
+    public static JSONObject exploded(UUID explodedUUID, boolean healthPickup, UUID healthPickupUUID, int x, int y) {
         JSONObject jsonObj = new JSONObject();
         jsonObj.put(Constants.ACTION, Constants.EXPLODED);
         jsonObj.put(Constants.EXPLODED_UUID, explodedUUID);
+        jsonObj.put(Constants.HEALTH_PICKUP, healthPickup);
+        jsonObj.put(Constants.UUID, healthPickupUUID);
+        jsonObj.put(Constants.X, x);
+        jsonObj.put(Constants.Y, y);
+
+        return jsonObj;
+    }
+
+    public static JSONObject healthPickedUp(UUID playerUUID, UUID healthUUID) {
+        JSONObject jsonObj = new JSONObject();
+        jsonObj.put(Constants.ACTION, Constants.HEALTH_PICKED_UP);
+        jsonObj.put(Constants.PLAYER_UUID, playerUUID);
+        jsonObj.put(Constants.UUID, healthUUID);
 
         return jsonObj;
     }

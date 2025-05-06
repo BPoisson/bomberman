@@ -27,6 +27,7 @@ public class Constants {
 
     // Player constants.
     public static final int PLAYER_SPEED = 1;
+    public static final int PLAYER_MAX_HEALTH = 3;
     public static final int PLAYER_1_X = BLOCK_SIZE * BLOCK_SCALE * 2;
     public static final int PLAYER_2_X = PANEL_WIDTH - (BLOCK_SIZE * BLOCK_SCALE * 3);
     public static final int PLAYER_Y = PANEL_HEIGHT / 2;
@@ -66,6 +67,8 @@ public class Constants {
     public static final String BOMB_UUID = "bombUUID";
     public static final String EXPLOSION_UUID = "explosionUUID";
     public static final String EXPLODED_UUID = "explodedUUID";
+    public static final String HEALTH_PICKUP = "healthPickup";
+    public static final String HEALTH_PICKED_UP = "healthPickedUp";
 
     public static final String X = "x";
     public static final String Y = "y";

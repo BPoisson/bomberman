@@ -90,7 +90,7 @@ public class Bomb extends Entity {
         List<Entity> exploded = new LinkedList<>();
 
         for (Entity entity : gameEntities) {
-            if (!(entity instanceof Block) && this.checkCollision(entity)) {
+            if (!(entity instanceof Block) && !(entity instanceof HealthPickup) && this.checkCollision(entity)) {
                 exploded.add(entity);
             }
         }

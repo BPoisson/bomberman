@@ -16,7 +16,7 @@ public class Player extends Entity {
         this.x = -100;
         this.y = -100;
         this.color = Color.getHSBColor(210 / 360f, 1.0f, 0.8f);
-        this.health = 3;
+        this.health = Constants.PLAYER_MAX_HEALTH;
         this.bombCooldown = 0;
         this.isImmune = false;
     }
@@ -26,8 +26,16 @@ public class Player extends Entity {
         this.x = x;
         this.y = y;
         this.color = Color.getHSBColor(0 / 360f, 1.0f, 0.7f);
-        this.health = 3;
+        this.health = Constants.PLAYER_MAX_HEALTH;
         this.isImmune = false;
+    }
+
+    public void incrementHealth() {
+        if (health == 3) {
+            System.err.println("Too much health!");
+            return;
+        }
+        health++;
     }
 
     public void handleHit() {

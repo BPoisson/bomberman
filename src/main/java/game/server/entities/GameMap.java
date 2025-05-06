@@ -3,9 +3,7 @@ package game.server.entities;
 import engine.Entity;
 import global.Constants;
 
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 
 public class GameMap {
     private Random rand;
@@ -49,10 +47,15 @@ public class GameMap {
                 if (mapArray[row][col] == Constants.BLOCK_TYPE || rand.nextInt(8) == 0) {
                     mapEntities.add(new Block(col * Constants.TILE_SIZE, row * Constants.TILE_SIZE));
                 } else if (rand.nextInt(3) == 0) {
-                    mapEntities.add(new Box(col * Constants.TILE_SIZE, row * Constants.TILE_SIZE));
+                    boolean hasHealthPickup = rand.nextInt(9) == 0;
+                    mapEntities.add(new Box(col * Constants.TILE_SIZE, row * Constants.TILE_SIZE, hasHealthPickup));
                 }
             }
         }
         return mapEntities;
+    }
+
+    private String getKey(int row, int col) {
+        return row + "," + col;
     }
 }

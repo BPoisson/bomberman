@@ -26,7 +26,7 @@ public class Player extends Entity {
         this.y = y;
         this.bombCooldown = 0;
         this.color = Color.BLUE;
-        this.health = 3;
+        this.health = Constants.PLAYER_MAX_HEALTH;
         this.speed = Constants.PLAYER_SPEED;
         this.direction = Direction.RIGHT;
         this.address = address;
@@ -102,6 +102,10 @@ public class Player extends Entity {
             return true;
         }
         return false;
+    }
+
+    public void incrementHealth() {
+        health++;
     }
 
     public void decrementHealth() {

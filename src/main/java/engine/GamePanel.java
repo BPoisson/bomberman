@@ -2,11 +2,8 @@ package engine;
 
 import game.Direction;
 import game.client.GameClient;
-import game.client.entities.Bomb;
-import game.client.entities.Player;
-import game.client.entities.Block;
+import game.client.entities.*;
 import game.client.entities.Box;
-import game.client.entities.Explosion;
 import game.client.manager.BombManager;
 import global.Constants;
 import global.JSONCreator;
@@ -242,6 +239,7 @@ public class GamePanel extends JPanel implements Runnable {
                 case Constants.EXPLODED -> handleExploded(message);
                 case Constants.PLAYER_HIT -> handlePlayerHit(message);
                 case Constants.IMMUNITY_DISABLED -> handleImmunityDisabled(message);
+                case Constants.HEALTH_PICKED_UP -> handleHealthPickup(message);
                 case Constants.PLAYER_LOST -> handlePlayerLost(message);
                 default -> System.err.println("Unhandled message: " + message);
             }
@@ -297,14 +295,31 @@ public class GamePanel extends JPanel implements Runnable {
 
     private void handleExploded(JSONObject jsonObject) {
         UUID explodedUUID = UUID.fromString(jsonObject.getString(Constants.EXPLODED_UUID));
-        List<Entity> explodedBoxes = new LinkedList<>();
+        boolean hasHealthPickup = jsonObject.getBoolean(Constants.HEALTH_PICKUP);
+        Entity destroyedMapEntity = null;
+        HealthPickup healthPickup = null;
 
         for (Entity entity : gameMapEntities) {
-            if (entity instanceof Box && entity.uuid.equals(explodedUUID)) {
-                explodedBoxes.add(entity);
+            if ((entity instanceof Box) && entity.uuid.equals(explodedUUID)) {
+                destroyedMapEntity = entity;
+                break;
             }
         }
-        gameMapEntities.removeAll(explodedBoxes);
+
+        if (hasHealthPickup) {
+            UUID healthPickupUUID = UUID.fromString(jsonObject.getString(Constants.UUID));
+            int x = jsonObject.getInt(Constants.X);
+            int y = jsonObject.getInt(Constants.Y);
+
+            healthPickup = new HealthPickup(healthPickupUUID, x, y);
+        }
+
+        if (destroyedMapEntity != null) {
+            gameMapEntities.remove(destroyedMapEntity);
+        }
+        if (healthPickup != null) {
+            gameMapEntities.add(healthPickup);
+        }
     }
 
     private void handlePlayerHit(JSONObject jsonObject) {
@@ -321,6 +336,22 @@ public class GamePanel extends JPanel implements Runnable {
     private void handleImmunityDisabled(JSONObject jsonObject) {
         UUID playerUUID = UUID.fromString(jsonObject.getString(Constants.PLAYER_UUID));
         playerMap.get(playerUUID).disableImmunity();
+    }
+
+    private void handleHealthPickup(JSONObject jsonObject) {
+        UUID playerUUID = UUID.fromString(jsonObject.getString(Constants.PLAYER_UUID));
+        UUID healthUUID = UUID.fromString(jsonObject.getString(Constants.UUID));
+        Player player = playerMap.get(playerUUID);
+        player.incrementHealth();
+        Entity healthPickup = null;
+
+        for (Entity entity : gameMapEntities) {
+            if (entity instanceof HealthPickup && entity.uuid.equals(healthUUID)) {
+                healthPickup = entity;
+                break;
+            }
+        }
+        gameMapEntities.remove(healthPickup);
     }
 
     private void handlePlayerLost(JSONObject jsonObject) {

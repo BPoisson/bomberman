@@ -135,6 +135,7 @@ public class GameServer {
 
             if (action.equals(Constants.MOVE)) {
                 handleMovement(player, Direction.valueOf(message.getString(Constants.DIRECTION)));
+                handleHealthPickup(player);
             } else if (action.equals(Constants.BOMB)) {
                 handleBomb(player);
             }
@@ -172,6 +173,24 @@ public class GameServer {
         for (Player p : players) {
             sendMessage(JSONCreator.playerMoved(player.uuid, player.x, player.y).toString(), p.address, p.port);
         }
+    }
+
+    private void handleHealthPickup(Player player) {
+        List<HealthPickup> healthPickups = player.checkHealthCollision(getGameEntities());
+        List<HealthPickup> removedHealthPickups = new LinkedList<>();
+
+        while (!healthPickups.isEmpty() && player.getHealth() < Constants.PLAYER_MAX_HEALTH) {
+            removedHealthPickups.add(healthPickups.getFirst());
+            healthPickups.removeFirst();
+            player.incrementHealth();
+        }
+
+        for (HealthPickup healthPickup : removedHealthPickups) {
+            for (Player p : players) {
+                sendMessage(JSONCreator.healthPickedUp(player.uuid, healthPickup.uuid).toString(), p.address, p.port);
+            }
+        }
+        gameMap.mapEntities.removeAll(removedHealthPickups);
     }
 
     private void handleBomb(Player player) {
@@ -216,15 +235,21 @@ public class GameServer {
             } else if (entity instanceof Player playerHit) {
                 handlePlayerExplosion(playerHit);
             }
-
         }
     }
 
     private void handleBoxExplosion(Box box) {
         gameMap.mapEntities.remove(box); // Remove exploded Boxes.
+        UUID healthPickupUUID = null;
+
+        if (box.hasHealthPickup()) {
+            HealthPickup healthPickup = new HealthPickup(box.x, box.y);
+            healthPickupUUID = healthPickup.uuid;
+            gameMap.mapEntities.add(healthPickup);
+        }
 
         for (Player p : players) {
-            sendMessage(JSONCreator.exploded(box.uuid).toString(), p.address, p.port);
+            sendMessage(JSONCreator.exploded(box.uuid, box.hasHealthPickup(), healthPickupUUID, box.x, box.y).toString(), p.address, p.port);
         }
     }
 
